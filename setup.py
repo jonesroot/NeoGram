@@ -1,24 +1,25 @@
-#  Pyrogram - Telegram MTProto API Client Library for Python
+#  NeoGram - Telegram MTProto API Client Library for Python
+#
 #  Copyright (C) 2017-present Dan <https://github.com/delivrance>
+#  Copyright (C) 2026-present Lucifer <https://codeberg.org/lucifers>
 #
-#  This file is part of Pyrogram.
+#  This file is part of NeoGram (a fork of Pyrogram).
 #
-#  Pyrogram is free software: you can redistribute it and/or modify
+#  NeoGram is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU Lesser General Public License as published
 #  by the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
-#  Pyrogram is distributed in the hope that it will be useful,
+#  NeoGram is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with Pyrogram.  If not, see <http://www.gnu.org/licenses/>.
+#  along with NeoGram.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
 from sys import argv
-
 from setuptools import setup, find_packages
 
 from compiler.api import compiler as api_compiler
@@ -38,15 +39,15 @@ if len(argv) > 1 and argv[1] in ["bdist_wheel", "install", "develop"]:
     errors_compiler.start()
 
 setup(
-    name="pyrogram-navy",
+    name="neogram",
     version=version,
-    description="Elegant, modern and asynchronous Telegram MTProto API framework in Python for users and bots (Navy Fork)",
+    description="A high-performance, asynchronous Telegram MTProto API framework (NeoGram fork)",
     long_description=readme,
     long_description_content_type="text/markdown",
-    url="https://github.com/navycodes/pyrogram-navy",
-    download_url="https://github.com/navycodes/pyrogram-navy/releases/latest",
-    author="deylin",
-    author_email="deylinarea@gmail.com",
+    url="https://codeberg.org/lucifers/NeoGram",
+    download_url="https://codeberg.org/lucifers/NeoGram/releases/latest",
+    author="Lucifer",
+    author_email="ikyodeos378@gmail.com",
     license="LGPLv3",
     classifiers=[
         "Development Status :: 5 - Production/Stable",
@@ -63,7 +64,6 @@ setup(
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
         "Programming Language :: Python :: 3.13",
-        "Programming Language :: Python :: 3.14",
         "Programming Language :: Python :: Implementation",
         "Programming Language :: Python :: Implementation :: CPython",
         "Programming Language :: Python :: Implementation :: PyPy",
@@ -74,14 +74,12 @@ setup(
         "Topic :: Software Development :: Libraries :: Python Modules",
         "Topic :: Software Development :: Libraries :: Application Frameworks"
     ],
-    keywords="telegram chat messenger mtproto api client library python",
+    keywords="telegram chat messenger mtproto api client library python neogram",
     python_requires=">=3.8",
     package_data={
-        "pyrogram-navy": ["py.typed"],
+        "neogram": ["py.typed"],
     },
     packages=find_packages(exclude=["compiler*", "tests*"]),
     zip_safe=False,
     install_requires=requires
 )
-
-
