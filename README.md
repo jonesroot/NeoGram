@@ -1,75 +1,74 @@
 <p align="center">
-    <a href="https://github.com/pyrogram/pyrogram">
-        <img src="https://docs.pyrogram.org/_static/pyrogram.png" alt="Pyrogram" width="128">
-    </a>
+    <img src="https://img.shields.io/badge/NeoGram-Telegram_MTProto_Framework-blue?style=for-the-badge" alt="NeoGram Logo">
     <br>
-    <b>Telegram MTProto API Framework for Python</b>
+    <b>A High-Performance, Asynchronous Telegram MTProto API Framework for Python</b>
     <br>
-    <a href="https://pyrogram.org">
-        Homepage
-    </a>
+    <a href="https://codeberg.org/lucifers/NeoGram">Homepage</a>
     •
-    <a href="https://docs.pyrogram.org">
-        Documentation
-    </a>
+    <a href="https://codeberg.org/lucifers/NeoGram/docs">Documentation</a>
     •
-    <a href="https://docs.pyrogram.org/releases">
-        Releases
-    </a>
-    •
-    <a href="https://t.me/pyrogram">
-        News
-    </a>
+    <a href="https://codeberg.org/lucifers/NeoGram/releases">Releases</a>
 </p>
 
-## Pyrogram
 
-> Elegant, modern and asynchronous Telegram MTProto API framework in Python for users and bots
+## 🚀 About NeoGram
 
-``` python
+**NeoGram** is an evolved, modern, and fully asynchronous Telegram MTProto API framework built with Python. Designed for both developers building powerful bots and users creating custom clients, NeoGram provides a seamless way to interact with Telegram's API.
+
+NeoGram is a **fork of Pyrogram**, focusing on performance,stability, and new features.
+
+```python
 from pyrogram import Client, filters
 
 app = Client("my_account")
 
-
 @app.on_message(filters.private)
 async def hello(client, message):
-    await message.reply("Hello from Pyrogram!")
-
+    await message.reply("Hello from NeoGram!")
 
 app.run()
 ```
 
-**Pyrogram** is a modern, elegant and asynchronous [MTProto API](https://docs.pyrogram.org/topics/mtproto-vs-botapi)
-framework. It enables you to easily interact with the main Telegram API through a user account (custom client) or a bot
-identity (bot API alternative) using Python.
+## ✨ Key Features
 
-### Support
+  - 🚀 High Performance: Optimized for speed and efficiency, leveraging modern
+    asynchronous patterns.
+  - 🛠 User-Friendly: An intuitive API that simplifies complex MTProto
+    interactions without sacrificing power.
+  - 💎 Highly Abstracted: Low-level Telegram complexities are handled internally,
+    allowing you to focus on your logic.
+  - ⚡ Async-First: Built from the ground up to be fully asynchronous, ensuring
+    non-blocking operations.
+  - 📝 Type-Hinted: Comprehensive type hinting for a superior development
+    experience in VS Code, PyCharm, and other IDEs.
+  - 🔌 Powerful Access: Provides deep access to Telegram's core features for both
+    Bot API and Userbot implementations.
 
-If you'd like to support Pyrogram, you can consider:
+## 📦 Installation
 
-- [Become a GitHub sponsor](https://github.com/sponsors/delivrance).
-- [Become a LiberaPay patron](https://liberapay.com/delivrance).
-- [Become an OpenCollective backer](https://opencollective.com/pyrogram).
-
-### Key Features
-
-- **Ready**: Install Pyrogram with pip and start building your applications right away.
-- **Easy**: Makes the Telegram API simple and intuitive, while still allowing advanced usages.
-- **Elegant**: Low-level details are abstracted and re-presented in a more convenient way.
-- **Fast**: Boosted up by [TgCrypto](https://github.com/pyrogram/tgcrypto), a high-performance cryptography library written in C.  
-- **Type-hinted**: Types and methods are all type-hinted, enabling excellent editor support.
-- **Async**: Fully asynchronous (also usable synchronously if wanted, for convenience).
-- **Powerful**: Full access to Telegram's API to execute any official client action and more.
-
-### Installing
-
-``` bash
-pip3 install pyrogram
+Install NeoGram via pip:
+```
+pip install neogram
 ```
 
-### Resources
+Or:
+```
+pip install https://codeberg.org/lucifers/NeoGram.git
+```
 
-- Check out the docs at https://docs.pyrogram.org to learn more about Pyrogram, get started right
-away and discover more in-depth material for building your client applications.
-- Join the official channel at https://t.me/pyrogram and stay tuned for news, updates and announcements.
+## 📚 Resources
+
+  - Documentation: Visit our Docs
+  - Issues & Discussions: Report bugs on Codeberg
+
+## ⚖️ Disclaimer & Credits
+
+NeoGram is a community-driven fork of Pyrogram.
+
+  - We are not affiliated with, endorsed by, or associated with the official
+    Pyrogram project or Telegram Messenger.
+  - All original rights to the underlying Pyrogram code belong to its original
+    authors.
+  - This project is developed for research,educational,community, skills improvement, purposes.
+
+Please support the original Pyrogram project if you find this framework useful.
