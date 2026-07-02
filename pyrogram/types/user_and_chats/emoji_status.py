@@ -20,8 +20,8 @@
 from datetime import datetime
 from typing import Optional
 
-import pyrogram_styled
-from pyrogram_styled import raw, utils
+import pyrogram
+from pyrogram import raw, utils
 
 from ..object import Object
 
@@ -64,7 +64,7 @@ class EmojiStatus(Object):
     def __init__(
         self,
         *,
-        client: "pyrogram_styled.Client" = None,
+        client: "pyrogram.Client" = None,
         custom_emoji_id: Optional[int] = None,
         gift_id: Optional[int] = None,
         until_date: Optional[datetime] = None,
