@@ -76,6 +76,7 @@ from .update_chat_notifications import UpdateChatNotifications
 from .update_color import UpdateColor
 from .update_folder import UpdateFolder
 from .transfer_chat_ownership import TransferChatOwnership
+from .join_folder import JoinFolder
 
 class Chats(
     GetChat,
@@ -137,6 +138,7 @@ class Chats(
     GetSendAsChats,
     SetSendAsChat,
     SetChatProtectedContent,
-    TransferChatOwnership
+    TransferChatOwnership,
+    JoinFolder
 ):
     pass

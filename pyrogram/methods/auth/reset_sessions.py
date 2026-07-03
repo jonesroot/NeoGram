@@ -16,14 +16,24 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with Pyrogram.  If not, see <http://www.gnu.org/licenses/>.
 
-from .active_session import ActiveSession
-from .active_sessions import ActiveSessions
-from .sent_code import SentCode
-from .terms_of_service import TermsOfService
+import pyrogram
+from pyrogram import raw
 
-__all__ = [
-    "ActiveSession",
-    "ActiveSessions",
-    "SentCode",
-    "TermsOfService",
-]
+
+class ResetSessions:
+    async def reset_sessions(
+        self: "pyrogram.Client",
+    ) -> bool:
+        """Terminates all user's authorized sessions except for the current one.
+
+        .. include:: /_includes/usable-by/users.rst
+
+        Returns:
+            ``bool``: On success, in case the sessions is destroyed, True is returned. Otherwise, False is returned.
+
+        """
+        r = await self.invoke(
+            raw.functions.auth.ResetAuthorizations()
+        )
+
+        return r

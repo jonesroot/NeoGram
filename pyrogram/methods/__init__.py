@@ -31,7 +31,8 @@ from .stories import Stories
 from .stickers import Stickers
 from .utilities import Utilities
 from .pyromod import Pyromod
-
+from .folders import Folders
+from .phone import Phone
 
 class Methods(
     Advanced,
@@ -48,6 +49,8 @@ class Methods(
     Stickers,
     Utilities,
     InviteLinks,
-    Pyromod
+    Pyromod,
+    Folders,
+    Phone
 ):
     pass

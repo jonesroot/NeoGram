@@ -55,7 +55,9 @@ from .video_chat_members_invited import VideoChatMembersInvited
 from .video_chat_scheduled import VideoChatScheduled
 from .video_chat_started import VideoChatStarted
 from .birthday import Birthday
-
+from .chat_folder_invite_link_info import ChatFolderInviteLinkInfo
+from .folder_invite_link import FolderInviteLink
+from .group_call_member import GroupCallMember
 
 __all__ = [
     "BotVerification",
@@ -95,5 +97,8 @@ __all__ = [
     "ChatJoiner",
     "EmojiStatus",
     "Folder",
-    "ChatReactions"
+    "ChatReactions",
+    "ChatFolderInviteLinkInfo",
+    "FolderInviteLink",
+    "GroupCallMember"
 ]

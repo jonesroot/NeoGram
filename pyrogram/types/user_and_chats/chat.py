@@ -459,7 +459,7 @@ class Chat(Object):
         
     def listen(
         self,
-        filters: None,
+        filters = None,
         listener_type: ListenerTypes = ListenerTypes.MESSAGE,
         timeout: int | None = None,
         unallowed_click_alert: bool = True,
@@ -520,7 +520,7 @@ class Chat(Object):
     def ask(
         self,
         text: str,
-        filters: None,
+        filters = None,
         listener_type: ListenerTypes = ListenerTypes.MESSAGE,
         timeout: int | None = None,
         unallowed_click_alert: bool = True,
