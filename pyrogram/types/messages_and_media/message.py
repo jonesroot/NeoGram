@@ -1121,7 +1121,7 @@ class Message(Object, Update):
         
     def listen(
         self,
-        filters: Optional[pyrogram.filters] = None,
+        filters: Optional["pyrogram.filters.Filter"] = None,
         listener_type: ListenerTypes = ListenerTypes.MESSAGE,
         timeout: int | None = None,
         unallowed_click_alert: bool = True,
@@ -1182,7 +1182,7 @@ class Message(Object, Update):
     def ask(
         self,
         text: str,
-        filters: Optional[pyrogram.filters] = None,
+        filters: Optional["pyrogram.filters.Filter"] = None,
         listener_type: ListenerTypes = ListenerTypes.MESSAGE,
         timeout: int | None = None,
         unallowed_click_alert: bool = True,
