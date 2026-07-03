@@ -66,6 +66,15 @@ class Chat(Object):
         is_support (``bool``):
             True, if this chat is part of the Telegram support team. Users and bots only.
 
+        is_banned (``bool``, *optional*):
+            True, if you are banned in this chat.
+
+        is_call_active (``bool``, *optional*):
+            True, if a group call is currently active.
+
+        is_call_not_empty (``bool``, *optional*):
+            True, if there's anyone in the group call.
+
         is_stories_hidden (``bool``):
             True, if this chat has hidden stories.
 
@@ -141,6 +150,14 @@ class Chat(Object):
             Distance in meters of this group chat from your location.
             Returned only in :meth:`~pyrogram.Client.get_nearby_chats`.
 
+        personal_channel (:obj:`~pyrogram.types.Chat`, *optional*):
+            The personal channel linked to this chat.
+            Returned only in :meth:`~pyrogram.Client.get_chat`.
+
+        personal_channel_message (:obj:`~pyrogram.types.Message`, *optional*):
+            The last message in the personal channel of this chat.
+            Returned only in :meth:`~pyrogram.Client.get_chat`.
+
         linked_chat (:obj:`~pyrogram.types.Chat`, *optional*):
             The linked discussion group (in case of channels) or the linked channel (in case of supergroups).
             Returned only in :meth:`~pyrogram.Client.get_chat`.
@@ -152,10 +169,6 @@ class Chat(Object):
         available_reactions (:obj:`~pyrogram.types.ChatReactions`, *optional*):
             Available reactions in the chat.
             Returned only in :meth:`~pyrogram.Client.get_chat`.
-
-        level (``int``, *optional*):
-            Channel boosts level.
-            For channel only.
 
         reply_color (:obj:`~pyrogram.types.ChatColor`, *optional*):
             Chat reply color.
@@ -195,6 +208,9 @@ class Chat(Object):
         is_scam: bool = None,
         is_fake: bool = None,
         is_deactivated: bool = None,
+        is_banned: Optional[bool] = None,
+        is_call_active: Optional[bool] = None,
+        is_call_not_empty: Optional[bool] = None,
         is_support: bool = None,
         is_stories_hidden: bool = None,
         is_stories_unavailable: bool = None,
@@ -216,6 +232,8 @@ class Chat(Object):
         restrictions: List["types.Restriction"] = None,
         permissions: "types.ChatPermissions" = None,
         distance: int = None,
+        personal_channel: Optional["types.Chat"] = None,
+        personal_channel_message: Optional["types.Message"] = None,
         linked_chat: "types.Chat" = None,
         send_as_chat: "types.Chat" = None,
         available_reactions: Optional["types.ChatReactions"] = None,
@@ -237,6 +255,9 @@ class Chat(Object):
         self.is_scam = is_scam
         self.is_fake = is_fake
         self.is_deactivated = is_deactivated
+        self.is_banned = is_banned
+        self.is_call_active = is_call_active
+        self.is_call_not_empty = is_call_not_empty
         self.is_support = is_support
         self.is_stories_hidden = is_stories_hidden
         self.is_stories_unavailable = is_stories_unavailable
@@ -258,6 +279,8 @@ class Chat(Object):
         self.restrictions = restrictions
         self.permissions = permissions
         self.distance = distance
+        self.personal_channel = personal_channel
+        self.personal_channel_message = personal_channel_message
         self.linked_chat = linked_chat
         self.send_as_chat = send_as_chat
         self.available_reactions = available_reactions
@@ -304,6 +327,16 @@ class Chat(Object):
         usernames = getattr(chat, "usernames", [])
         admin_rights = getattr(chat, "admin_rights", None)
 
+        if isinstance(chat, raw.types.ChatForbidden):
+            return Chat(
+                id=peer_id,
+                type=enums.ChatType.GROUP,
+                title=chat.title,
+                is_banned=True,
+                raw=chat,
+                client=client
+            )
+
         return Chat(
             id=peer_id,
             type=enums.ChatType.GROUP,
@@ -311,6 +344,8 @@ class Chat(Object):
             is_creator=getattr(chat, "creator", None),
             is_admin=True if admin_rights else None,
             is_deactivated=getattr(chat, "deactivated", None),
+            is_call_active=chat.call_active,
+            is_call_not_empty=chat.call_not_empty,
             usernames=types.List([types.Username._parse(r) for r in usernames]) or None,
             photo=types.ChatPhoto._parse(client, getattr(chat, "photo", None), peer_id, 0),
             permissions=types.ChatPermissions._parse(getattr(chat, "default_banned_rights", None)),
@@ -329,6 +364,17 @@ class Chat(Object):
         usernames = getattr(channel, "usernames", [])
         admin_rights = getattr(channel, "admin_rights", None)
 
+        if isinstance(channel, raw.types.ChannelForbidden):
+            return Chat(
+                id=peer_id,
+                type=enums.ChatType.DIRECT if channel.monoforum else enums.ChatType.SUPERGROUP if channel.megagroup else enums.ChatType.CHANNEL,
+                title=channel.title,
+                is_banned=True,
+                banned_until_date=utils.timestamp_to_datetime(getattr(channel, "until_date", None)),
+                raw=channel,
+                client=client,
+            )
+
         return Chat(
             id=peer_id,
             type=enums.ChatType.SUPERGROUP if getattr(channel, "megagroup", None) else enums.ChatType.CHANNEL,
@@ -341,6 +387,8 @@ class Chat(Object):
             is_fake=getattr(channel, "fake", None),
             is_stories_hidden=getattr(channel, "stories_hidden", None),
             is_stories_unavailable=getattr(channel, "stories_unavailable", None),
+            is_call_active=channel.call_active,
+            is_call_not_empty=channel.call_not_empty,
             title=channel.title,
             username=getattr(channel, "username", None),
             usernames=types.List([types.Username._parse(r) for r in usernames]) or None,
@@ -401,6 +449,16 @@ class Chat(Object):
                     parsed_chat.id,
                     message_ids=full_user.pinned_msg_id
                 )
+
+            personal_channel_id = getattr(full_user, "personal_channel_id", None)
+            if personal_channel_id:
+                parsed_chat.personal_channel = Chat._parse_channel_chat(client, chats.get(personal_channel_id))
+                personal_channel_message_id = getattr(full_user, "personal_channel_message", None)
+                if parsed_chat.personal_channel and personal_channel_message_id:
+                    parsed_chat.personal_channel_message = await client.get_messages(
+                        chat_id=parsed_chat.personal_channel.id,
+                        message_ids=personal_channel_message_id
+                    )
         else:
             full_chat = chat_full.full_chat
             chat_raw = chats[full_chat.id]

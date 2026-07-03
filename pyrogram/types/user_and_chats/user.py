@@ -47,7 +47,6 @@ class Link(str):
 
         return fmt.format(url=url, text=html.escape(text))
 
-    # noinspection PyArgumentList
     def __new__(cls, url, text, style):
         return str.__new__(cls, Link.format(url, text, style))
 
@@ -154,6 +153,18 @@ class User(Object, Update):
             The list of reasons why this bot might be unavailable to some users.
             This field is available only in case *is_restricted* is True.
 
+        bio (``str``, *optional*):
+            Bio of the other party in a private chat.
+            Returned only in :meth:`~pyrogram.Client.get_chat`.
+
+        personal_channel (:obj:`~pyrogram.types.Chat`, *optional*):
+            The personal channel linked to this chat.
+            Returned only in :meth:`~pyrogram.Client.get_chat`.
+
+        personal_channel_message (:obj:`~pyrogram.types.Message`, *optional*):
+            The last message in the personal channel of this chat.
+            Returned only in :meth:`~pyrogram.Client.get_chat`.
+
         mention (``str``, *property*):
             Generate a text mention for this user.
             You can use ``user.mention()`` to mention the user using their first name (styled using html), or
@@ -201,8 +212,10 @@ class User(Object, Update):
         reply_color: "types.ChatColor" = None,
         profile_color: "types.ChatColor" = None,
         active_users: int = None,
-        frozen_icon: int = None
-        
+        frozen_icon: int = None,
+        bio: str = None,
+        personal_channel: "types.Chat" = None,
+        personal_channel_message: "types.Message" = None
     ):
         super().__init__(client)
 
@@ -237,6 +250,9 @@ class User(Object, Update):
         self.profile_color = profile_color
         self.active_users = active_users
         self.frozen_icon = frozen_icon
+        self.bio = bio
+        self.personal_channel = personal_channel
+        self.personal_channel_message = personal_channel_message
 
     @property
     def full_name(self) -> str:
@@ -303,6 +319,27 @@ class User(Object, Update):
             frozen_icon=frozen_icon,
             client=client
         )
+
+    @staticmethod
+    async def _parse_full(client, user: "raw.types.UserFull", users: dict, chats: dict) -> Optional["User"]:
+        parsed_user = User._parse(client, users[user.id])
+        if parsed_user is None:
+            return None
+        parsed_user.raw = user
+
+        parsed_user.bio = user.about or None
+
+        personal_channel_id = getattr(user, "personal_channel_id", None)
+        if personal_channel_id:
+            parsed_user.personal_channel = types.Chat._parse_channel_chat(client, chats.get(personal_channel_id))
+            personal_channel_message_id = getattr(user, "personal_channel_message", None)
+            if parsed_user.personal_channel and personal_channel_message_id:
+                parsed_user.personal_channel_message = await client.get_messages(
+                    chat_id=parsed_user.personal_channel.id,
+                    message_ids=personal_channel_message_id
+                )
+
+        return parsed_user
 
     @staticmethod
     def _parse_status(user_status: "raw.base.UserStatus", is_bot: bool = False):
