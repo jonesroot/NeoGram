@@ -24,6 +24,7 @@ from typing import List, Match, Union, BinaryIO, Optional, Callable
 
 import pyrogram
 from pyrogram import raw, enums, types, utils
+from pyrogram import filters
 from pyrogram.types.pyromod import ListenerTypes
 from pyrogram.errors import MessageIdsEmpty, PeerIdInvalid, ChannelPrivate, FloodWait, FloodPremiumWait
 from pyrogram.parser import utils as parser_utils, Parser
@@ -1120,7 +1121,7 @@ class Message(Object, Update):
         
     def listen(
         self,
-        filters: None,
+        filters: Optional[pyrogram.filters] = None,
         listener_type: ListenerTypes = ListenerTypes.MESSAGE,
         timeout: int | None = None,
         unallowed_click_alert: bool = True,
@@ -1181,7 +1182,7 @@ class Message(Object, Update):
     def ask(
         self,
         text: str,
-        filters: None,
+        filters: Optional[pyrogram.filters] = None,
         listener_type: ListenerTypes = ListenerTypes.MESSAGE,
         timeout: int | None = None,
         unallowed_click_alert: bool = True,
@@ -1240,6 +1241,9 @@ class Message(Object, Update):
         Returns:
             Union[:obj:`~pyrogram.types.Message`, :obj:`~pyrogram.types.CallbackQuery`]: The Message or CallbackQuery
         """
+        if filters is None:
+            filters = pyrogram.filters.user(user_id) if user_id else None
+
         return self._client.ask(
             chat_id=self.chat.id if self.chat else None,
             text=text,
