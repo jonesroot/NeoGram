@@ -459,7 +459,7 @@ class Chat(Object):
         
     def listen(
         self,
-        filters: None,
+        filters: Optional["pyrogram.filters.Filter"] = None,
         listener_type: ListenerTypes = ListenerTypes.MESSAGE,
         timeout: int | None = None,
         unallowed_click_alert: bool = True,
@@ -520,7 +520,7 @@ class Chat(Object):
     def ask(
         self,
         text: str,
-        filters: None,
+        filters: Optional["pyrogram.filters.Filter"] = None,
         listener_type: ListenerTypes = ListenerTypes.MESSAGE,
         timeout: int | None = None,
         unallowed_click_alert: bool = True,
@@ -579,6 +579,9 @@ class Chat(Object):
         Returns:
             Union[:obj:`~pyrogram.types.Message`, :obj:`~pyrogram.types.CallbackQuery`]: The Message or CallbackQuery
         """
+        if filters is None:
+            filters = pyrogram.filters.text
+
         return self._client.ask(
             chat_id=self.id,
             text=text,
