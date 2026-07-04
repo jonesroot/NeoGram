@@ -24,7 +24,7 @@ from functools import partial
 from typing import List, Match, Union, BinaryIO, Optional, Callable, Dict, Any, cast
 
 import pyrogram
-from pyrogram import raw, enums, utils
+from pyrogram import raw, enums, types, utils
 from pyrogram import filters
 from pyrogram.types.pyromod import ListenerTypes
 from pyrogram.errors import MessageIdsEmpty, PeerIdInvalid, ChannelPrivate, FloodWait, FloodPremiumWait
