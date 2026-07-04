@@ -285,38 +285,38 @@ class Message(Object, Update):
 
     @staticmethod
     async def _parse(
-        client: pyrogram.Client,
-        message: raw_base.Message,
-        users: dict[int, Any],
-        chats: dict[int, Any],
-        topics: Optional[dict[int, Any]] = None,
+        client: "pyrogram.Client",
+        message: raw.base.Message,
+        users: dict,
+        chats: dict,
+        topics: dict = None,
         is_scheduled: bool = False,
         replies: int = 1
-    ) -> Optional[Message]:
-        if isinstance(message, raw_types.MessageEmpty):
+    ):
+        if isinstance(message, raw.types.MessageEmpty):
             return Message(id=message.id, empty=True, client=client)
 
         from_id = utils.get_raw_peer_id(message.from_id)
         peer_id = utils.get_raw_peer_id(message.peer_id)
         user_id = from_id or peer_id
 
-        if isinstance(message.from_id, raw_types.PeerUser) and isinstance(message.peer_id, raw_types.PeerUser):
+        if isinstance(message.from_id, raw.types.PeerUser) and isinstance(message.peer_id, raw.types.PeerUser):
             if from_id not in users or peer_id not in users:
                 try:
-                    if from_id is not None and peer_id is not None:
-                        r = await client.invoke(
-                            raw_functions.users.GetUsers(
-                                id=[
-                                    await client.resolve_peer(from_id),
-                                    await client.resolve_peer(peer_id)
-                                ]
-                            )
+                    r = await client.invoke(
+                        raw.functions.users.GetUsers(
+                            id=[
+                                await client.resolve_peer(from_id),
+                                await client.resolve_peer(peer_id)
+                            ]
                         )
-                        users.update({i.id: i for i in r})
+                    )
                 except PeerIdInvalid:
                     pass
+                else:
+                    users.update({i.id: i for i in r})
 
-        if isinstance(message, raw_types.MessageService):
+        if isinstance(message, raw.types.MessageService):
             message_thread_id = None
             action = message.action
 
@@ -342,89 +342,87 @@ class Message(Object, Update):
             video_chat_members_invited = None
             web_app_data = None
             giveaway_launched = None
+
             service_type = None
 
-            if isinstance(action, raw_types.MessageActionChatAddUser):
-                new_chat_members = [pyrogram_types.User._parse(client, users[i]) for i in action.users if i in users]
+            if isinstance(action, raw.types.MessageActionChatAddUser):
+                new_chat_members = [types.User._parse(client, users[i]) for i in action.users]
                 service_type = enums.MessageServiceType.NEW_CHAT_MEMBERS
-            elif isinstance(action, raw_types.MessageActionChatJoinedByLink):
-                raw_peer = utils.get_raw_peer_id(message.from_id)
-                if raw_peer in users:
-                    new_chat_members = [pyrogram_types.User._parse(client, users[raw_peer])]
+            elif isinstance(action, raw.types.MessageActionChatJoinedByLink):
+                new_chat_members = [types.User._parse(client, users[utils.get_raw_peer_id(message.from_id)])]
                 service_type = enums.MessageServiceType.NEW_CHAT_MEMBERS
-            elif isinstance(action, raw_types.MessageActionChatDeleteUser):
-                if action.user_id in users:
-                    left_chat_member = pyrogram_types.User._parse(client, users[action.user_id])
+            elif isinstance(action, raw.types.MessageActionChatDeleteUser):
+                left_chat_member = types.User._parse(client, users[action.user_id])
                 service_type = enums.MessageServiceType.LEFT_CHAT_MEMBERS
-            elif isinstance(action, raw_types.MessageActionChatEditTitle):
+            elif isinstance(action, raw.types.MessageActionChatEditTitle):
                 new_chat_title = action.title
                 service_type = enums.MessageServiceType.NEW_CHAT_TITLE
-            elif isinstance(action, raw_types.MessageActionChatDeletePhoto):
+            elif isinstance(action, raw.types.MessageActionChatDeletePhoto):
                 delete_chat_photo = True
                 service_type = enums.MessageServiceType.DELETE_CHAT_PHOTO
-            elif isinstance(action, raw_types.MessageActionChatMigrateTo):
+            elif isinstance(action, raw.types.MessageActionChatMigrateTo):
                 migrate_to_chat_id = action.channel_id
                 service_type = enums.MessageServiceType.MIGRATE_TO_CHAT_ID
-            elif isinstance(action, raw_types.MessageActionChannelMigrateFrom):
+            elif isinstance(action, raw.types.MessageActionChannelMigrateFrom):
                 migrate_from_chat_id = action.chat_id
                 service_type = enums.MessageServiceType.MIGRATE_FROM_CHAT_ID
-            elif isinstance(action, raw_types.MessageActionChatCreate):
+            elif isinstance(action, raw.types.MessageActionChatCreate):
                 group_chat_created = True
                 service_type = enums.MessageServiceType.GROUP_CHAT_CREATED
-            elif isinstance(action, raw_types.MessageActionChannelCreate):
+            elif isinstance(action, raw.types.MessageActionChannelCreate):
                 channel_chat_created = True
                 service_type = enums.MessageServiceType.CHANNEL_CHAT_CREATED
-            elif isinstance(action, raw_types.MessageActionChatEditPhoto):
-                new_chat_photo = pyrogram_types.Photo._parse(client, action.photo)
+            elif isinstance(action, raw.types.MessageActionChatEditPhoto):
+                new_chat_photo = types.Photo._parse(client, action.photo)
                 service_type = enums.MessageServiceType.NEW_CHAT_PHOTO
-            elif isinstance(action, raw_types.MessageActionTopicCreate):
-                forum_topic_created = pyrogram_types.ForumTopicCreated._parse(message)
+            elif isinstance(action, raw.types.MessageActionTopicCreate):
+                forum_topic_created = types.ForumTopicCreated._parse(message)
                 service_type = enums.MessageServiceType.FORUM_TOPIC_CREATED
-            elif isinstance(action, raw_types.MessageActionTopicEdit):
+            elif isinstance(action, raw.types.MessageActionTopicEdit):
                 if action.title:
-                    forum_topic_edited = pyrogram_types.ForumTopicEdited._parse(action)
+                    forum_topic_edited = types.ForumTopicEdited._parse(action)
                     service_type = enums.MessageServiceType.FORUM_TOPIC_EDITED
                 elif action.hidden:
-                    general_topic_hidden = pyrogram_types.GeneralTopicHidden()
+                    general_topic_hidden = types.GeneralTopicHidden()
                     service_type = enums.MessageServiceType.GENERAL_TOPIC_HIDDEN
                 elif action.closed:
-                    forum_topic_closed = pyrogram_types.ForumTopicClosed()
+                    forum_topic_closed = types.ForumTopicClosed()
                     service_type = enums.MessageServiceType.FORUM_TOPIC_CLOSED
                 else:
                     if hasattr(action, "hidden") and action.hidden:
-                        general_topic_unhidden = pyrogram_types.GeneralTopicUnhidden()
+                        general_topic_unhidden = types.GeneralTopicUnhidden()
                         service_type = enums.MessageServiceType.GENERAL_TOPIC_UNHIDDEN
                     else:
-                        forum_topic_reopened = pyrogram_types.ForumTopicReopened()
+                        forum_topic_reopened = types.ForumTopicReopened()
                         service_type = enums.MessageServiceType.FORUM_TOPIC_REOPENED
-            elif isinstance(action, raw_types.MessageActionGroupCallScheduled):
-                video_chat_scheduled = pyrogram_types.VideoChatScheduled._parse(action)
+            elif isinstance(action, raw.types.MessageActionGroupCallScheduled):
+                video_chat_scheduled = types.VideoChatScheduled._parse(action)
                 service_type = enums.MessageServiceType.VIDEO_CHAT_SCHEDULED
-            elif isinstance(action, raw_types.MessageActionGroupCall):
+            elif isinstance(action, raw.types.MessageActionGroupCall):
                 if action.duration:
-                    video_chat_ended = pyrogram_types.VideoChatEnded._parse(action)
+                    video_chat_ended = types.VideoChatEnded._parse(action)
                     service_type = enums.MessageServiceType.VIDEO_CHAT_ENDED
                 else:
-                    video_chat_started = pyrogram_types.VideoChatStarted()
+                    video_chat_started = types.VideoChatStarted()
                     service_type = enums.MessageServiceType.VIDEO_CHAT_STARTED
-            elif isinstance(action, raw_types.MessageActionInviteToGroupCall):
-                video_chat_members_invited = pyrogram_types.VideoChatMembersInvited._parse(client, action, users)
+            elif isinstance(action, raw.types.MessageActionInviteToGroupCall):
+                video_chat_members_invited = types.VideoChatMembersInvited._parse(client, action, users)
                 service_type = enums.MessageServiceType.VIDEO_CHAT_MEMBERS_INVITED
-            elif isinstance(action, raw_types.MessageActionWebViewDataSentMe):
-                web_app_data = pyrogram_types.WebAppData._parse(action)
+            elif isinstance(action, raw.types.MessageActionWebViewDataSentMe):
+                web_app_data = types.WebAppData._parse(action)
                 service_type = enums.MessageServiceType.WEB_APP_DATA
-            elif isinstance(action, raw_types.MessageActionGiveawayLaunch):
+            elif isinstance(action, raw.types.MessageActionGiveawayLaunch):
                 giveaway_launched = True
                 service_type = enums.MessageServiceType.GIVEAWAY_LAUNCHED
 
-            from_user = pyrogram_types.User._parse(client, users.get(user_id, None))
-            sender_chat = pyrogram_types.Chat._parse(client, message, users, chats, is_chat=False) if not from_user else None
+            from_user = types.User._parse(client, users.get(user_id, None))
+            sender_chat = types.Chat._parse(client, message, users, chats, is_chat=False) if not from_user else None
 
             parsed_message = Message(
                 id=message.id,
                 message_thread_id=message_thread_id,
                 date=utils.timestamp_to_datetime(message.date),
-                chat=pyrogram_types.Chat._parse(client, message, users, chats, is_chat=True),
+                chat=types.Chat._parse(client, message, users, chats, is_chat=True),
                 topics=None,
                 from_user=from_user,
                 sender_chat=sender_chat,
@@ -452,29 +450,32 @@ class Message(Object, Update):
                 web_app_data=web_app_data,
                 giveaway_launched=giveaway_launched,
                 client=client
+                # TODO: supergroup_chat_created
             )
 
-            if isinstance(action, raw_types.MessageActionPinMessage):
+            if isinstance(action, raw.types.MessageActionPinMessage):
                 try:
-                    if parsed_message.chat:
-                        parsed_message.pinned_message = await client.get_messages(
-                            parsed_message.chat.id,
-                            reply_to_message_ids=message.id,
-                            replies=0
-                        )
-                        parsed_message.service = enums.MessageServiceType.PINNED_MESSAGE
+                    parsed_message.pinned_message = await client.get_messages(
+                        parsed_message.chat.id,
+                        reply_to_message_ids=message.id,
+                        replies=0
+                    )
+
+                    parsed_message.service = enums.MessageServiceType.PINNED_MESSAGE
                 except MessageIdsEmpty:
                     pass
 
-            if isinstance(action, raw_types.MessageActionGameScore):
-                parsed_message.game_high_score = pyrogram_types.GameHighScore._parse_action(client, message, users)
-                if message.reply_to and replies and parsed_message.chat:
+            if isinstance(action, raw.types.MessageActionGameScore):
+                parsed_message.game_high_score = types.GameHighScore._parse_action(client, message, users)
+
+                if message.reply_to and replies:
                     try:
                         parsed_message.reply_to_message = await client.get_messages(
                             parsed_message.chat.id,
                             reply_to_message_ids=message.id,
                             replies=0
                         )
+
                         parsed_message.service = enums.MessageServiceType.GAME_HIGH_SCORE
                     except MessageIdsEmpty:
                         pass
@@ -492,10 +493,10 @@ class Message(Object, Update):
 
             return parsed_message
 
-        if isinstance(message, raw_types.Message):
+        if isinstance(message, raw.types.Message):
             message_thread_id = None
-            entities = [pyrogram_types.MessageEntity._parse(client, entity, users) for entity in message.entities]
-            entities = pyrogram_types.List(filter(lambda x: x is not None, entities))
+            entities = [types.MessageEntity._parse(client, entity, users) for entity in message.entities]
+            entities = types.List(filter(lambda x: x is not None, entities))
 
             forward_from = None
             forward_sender_name = None
@@ -505,17 +506,19 @@ class Message(Object, Update):
             forward_date = None
             is_topic_message = None
 
-            forward_header = message.fwd_from
+            forward_header = message.fwd_from  # type: raw.types.MessageFwdHeader
 
             if forward_header:
                 forward_date = utils.timestamp_to_datetime(forward_header.date)
+
                 if forward_header.from_id:
                     raw_peer_id = utils.get_raw_peer_id(forward_header.from_id)
                     peer_id = utils.get_peer_id(forward_header.from_id)
-                    if peer_id > 0 and raw_peer_id in users:
-                        forward_from = pyrogram_types.User._parse(client, users[raw_peer_id])
-                    elif raw_peer_id in chats:
-                        forward_from_chat = pyrogram_types.Chat._parse_channel_chat(client, chats[raw_peer_id])
+
+                    if peer_id > 0:
+                        forward_from = types.User._parse(client, users[raw_peer_id])
+                    else:
+                        forward_from_chat = types.Chat._parse_channel_chat(client, chats[raw_peer_id])
                         forward_from_message_id = forward_header.channel_post
                         forward_signature = forward_header.post_author
                 elif forward_header.from_name:
@@ -544,101 +547,110 @@ class Message(Object, Update):
             has_media_spoiler = None
 
             if media:
-                if isinstance(media, raw_types.MessageMediaPhoto):
-                    photo = pyrogram_types.Photo._parse(client, media.photo, media.ttl_seconds)
+                if isinstance(media, raw.types.MessageMediaPhoto):
+                    photo = types.Photo._parse(client, media.photo, media.ttl_seconds)
                     media_type = enums.MessageMediaType.PHOTO
                     has_media_spoiler = media.spoiler
-                elif isinstance(media, raw_types.MessageMediaGeo):
-                    location = pyrogram_types.Location._parse(client, media.geo)
+                elif isinstance(media, raw.types.MessageMediaGeo):
+                    location = types.Location._parse(client, media.geo)
                     media_type = enums.MessageMediaType.LOCATION
-                elif isinstance(media, raw_types.MessageMediaContact):
-                    contact = pyrogram_types.Contact._parse(client, media)
+                elif isinstance(media, raw.types.MessageMediaContact):
+                    contact = types.Contact._parse(client, media)
                     media_type = enums.MessageMediaType.CONTACT
-                elif isinstance(media, raw_types.MessageMediaVenue):
-                    venue = pyrogram_types.Venue._parse(client, media)
+                elif isinstance(media, raw.types.MessageMediaVenue):
+                    venue = types.Venue._parse(client, media)
                     media_type = enums.MessageMediaType.VENUE
-                elif isinstance(media, raw_types.MessageMediaGame):
-                    game = pyrogram_types.Game._parse(client, message)
+                elif isinstance(media, raw.types.MessageMediaGame):
+                    game = types.Game._parse(client, message)
                     media_type = enums.MessageMediaType.GAME
-                elif isinstance(media, raw_types.MessageMediaGiveaway):
-                    giveaway = pyrogram_types.Giveaway._parse(client, media, chats)
+                elif isinstance(media, raw.types.MessageMediaGiveaway):
+                    giveaway = types.Giveaway._parse(client, media, chats)
                     media_type = enums.MessageMediaType.GIVEAWAY
-                elif isinstance(media, raw_types.MessageMediaStory):
-                    story = pyrogram_types.MessageStory._parse(client, media, users, chats)
+                elif isinstance(media, raw.types.MessageMediaStory):
+                    story = types.MessageStory._parse(client, media, users, chats)
                     media_type = enums.MessageMediaType.STORY
-                elif isinstance(media, raw_types.MessageMediaDocument):
+                elif isinstance(media, raw.types.MessageMediaDocument):
                     doc = media.document
-                    if isinstance(doc, raw_types.Document):
+
+                    if isinstance(doc, raw.types.Document):
                         attributes = {type(i): i for i in doc.attributes}
+
                         file_name = getattr(
-                            attributes.get(raw_types.DocumentAttributeFilename, None), "file_name", ""
+                            attributes.get(
+                                raw.types.DocumentAttributeFilename, None
+                            ), "file_name", None
                         )
-                        if raw_types.DocumentAttributeAnimated in attributes:
-                            video_attributes = attributes.get(raw_types.DocumentAttributeVideo, None)
-                            animation = pyrogram_types.Animation._parse(client, doc, video_attributes, file_name or "")
+
+                        if raw.types.DocumentAttributeAnimated in attributes:
+                            video_attributes = attributes.get(raw.types.DocumentAttributeVideo, None)
+                            animation = types.Animation._parse(client, doc, video_attributes, file_name)
                             media_type = enums.MessageMediaType.ANIMATION
                             has_media_spoiler = media.spoiler
-                        elif raw_types.DocumentAttributeSticker in attributes:
-                            sticker = await pyrogram_types.Sticker._parse(client, doc, attributes)
+                        elif raw.types.DocumentAttributeSticker in attributes:
+                            sticker = await types.Sticker._parse(client, doc, attributes)
                             media_type = enums.MessageMediaType.STICKER
-                        elif raw_types.DocumentAttributeVideo in attributes:
-                            video_attributes = attributes[raw_types.DocumentAttributeVideo]
+                        elif raw.types.DocumentAttributeVideo in attributes:
+                            video_attributes = attributes[raw.types.DocumentAttributeVideo]
+
                             if video_attributes.round_message:
-                                video_note = pyrogram_types.VideoNote._parse(client, doc, video_attributes)
+                                video_note = types.VideoNote._parse(client, doc, video_attributes)
                                 media_type = enums.MessageMediaType.VIDEO_NOTE
                             else:
-                                video = pyrogram_types.Video._parse(client, doc, video_attributes, file_name or "", media.ttl_seconds)
+                                video = types.Video._parse(client, doc, video_attributes, file_name, media.ttl_seconds)
                                 media_type = enums.MessageMediaType.VIDEO
                                 has_media_spoiler = media.spoiler
-                        elif raw_types.DocumentAttributeAudio in attributes:
-                            audio_attributes = attributes[raw_types.DocumentAttributeAudio]
+                        elif raw.types.DocumentAttributeAudio in attributes:
+                            audio_attributes = attributes[raw.types.DocumentAttributeAudio]
+
                             if audio_attributes.voice:
-                                voice = pyrogram_types.Voice._parse(client, doc, audio_attributes)
+                                voice = types.Voice._parse(client, doc, audio_attributes)
                                 media_type = enums.MessageMediaType.VOICE
                             else:
-                                audio = pyrogram_types.Audio._parse(client, doc, audio_attributes, file_name or "")
+                                audio = types.Audio._parse(client, doc, audio_attributes, file_name)
                                 media_type = enums.MessageMediaType.AUDIO
                         else:
-                            document = pyrogram_types.Document._parse(client, doc, file_name or "")
+                            document = types.Document._parse(client, doc, file_name)
                             media_type = enums.MessageMediaType.DOCUMENT
-                elif isinstance(media, raw_types.MessageMediaWebPage):
-                    if isinstance(media.webpage, raw_types.WebPage):
-                        web_page = pyrogram_types.WebPage._parse(client, media.webpage, media.force_large_media, media.force_small_media, media.manual)
+                elif isinstance(media, raw.types.MessageMediaWebPage):
+                    if isinstance(media.webpage, raw.types.WebPage):
+                        web_page = types.WebPage._parse(client, media.webpage, media.force_large_media, media.force_small_media, media.manual)
                         media_type = enums.MessageMediaType.WEB_PAGE_PREVIEW
                     else:
                         media = None
-                elif isinstance(media, raw_types.MessageMediaPoll):
-                    poll = pyrogram_types.Poll._parse(client, media)
+                elif isinstance(media, raw.types.MessageMediaPoll):
+                    poll = types.Poll._parse(client, media)
                     media_type = enums.MessageMediaType.POLL
-                elif isinstance(media, raw_types.MessageMediaDice):
-                    dice = pyrogram_types.Dice._parse(client, media)
+                elif isinstance(media, raw.types.MessageMediaDice):
+                    dice = types.Dice._parse(client, media)
                     media_type = enums.MessageMediaType.DICE
                 else:
                     media = None
 
             reply_markup = message.reply_markup
+
             if reply_markup:
-                if isinstance(reply_markup, raw_types.ReplyKeyboardForceReply):
-                    reply_markup = pyrogram_types.ForceReply.read(reply_markup)
-                elif isinstance(reply_markup, raw_types.ReplyKeyboardMarkup):
-                    reply_markup = pyrogram_types.ReplyKeyboardMarkup.read(reply_markup)
-                elif isinstance(reply_markup, raw_types.ReplyInlineMarkup):
-                    reply_markup = pyrogram_types.InlineKeyboardMarkup.read(reply_markup)
-                elif isinstance(reply_markup, raw_types.ReplyKeyboardHide):
-                    reply_markup = pyrogram_types.ReplyKeyboardRemove.read(reply_markup)
+                if isinstance(reply_markup, raw.types.ReplyKeyboardForceReply):
+                    reply_markup = types.ForceReply.read(reply_markup)
+                elif isinstance(reply_markup, raw.types.ReplyKeyboardMarkup):
+                    reply_markup = types.ReplyKeyboardMarkup.read(reply_markup)
+                elif isinstance(reply_markup, raw.types.ReplyInlineMarkup):
+                    reply_markup = types.InlineKeyboardMarkup.read(reply_markup)
+                elif isinstance(reply_markup, raw.types.ReplyKeyboardHide):
+                    reply_markup = types.ReplyKeyboardRemove.read(reply_markup)
                 else:
                     reply_markup = None
 
-            from_user = pyrogram_types.User._parse(client, users.get(user_id, None))
-            sender_chat = pyrogram_types.Chat._parse(client, message, users, chats, is_chat=False) if not from_user else None
-            reactions = pyrogram_types.MessageReactions._parse(client, message.reactions)
+            from_user = types.User._parse(client, users.get(user_id, None))
+            sender_chat = types.Chat._parse(client, message, users, chats, is_chat=False) if not from_user else None
+
+            reactions = types.MessageReactions._parse(client, message.reactions)
 
             parsed_message = Message(
                 id=message.id,
                 message_thread_id=message_thread_id,
                 effect_id=getattr(message, "effect", None),
                 date=utils.timestamp_to_datetime(message.date),
-                chat=pyrogram_types.Chat._parse(client, message, users, chats, is_chat=True),
+                chat=types.Chat._parse(client, message, users, chats, is_chat=True),
                 topics=None,
                 from_user=from_user,
                 sender_chat=sender_chat,
@@ -699,7 +711,7 @@ class Message(Object, Update):
                 dice=dice,
                 views=message.views,
                 forwards=message.forwards,
-                via_bot=pyrogram_types.User._parse(client, users.get(message.via_bot_id, None)),
+                via_bot=types.User._parse(client, users.get(message.via_bot_id, None)),
                 outgoing=message.out,
                 reply_markup=reply_markup,
                 reactions=reactions,
@@ -707,9 +719,13 @@ class Message(Object, Update):
             )
 
             if message.reply_to:
-                if isinstance(message.reply_to, raw_types.MessageReplyHeader):
+                if isinstance(message.reply_to, raw.types.MessageReplyHeader):
                     if message.reply_to.quote:
-                        parsed_message.quote = pyrogram_types.TextQuote._parse(client, users, message.reply_to)
+                        parsed_message.quote = types.TextQuote._parse(
+                            client,
+                            users,
+                            message.reply_to
+                        )
                     if message.reply_to.forum_topic:
                         if message.reply_to.reply_to_top_id:
                             thread_id = message.reply_to.reply_to_top_id
@@ -718,14 +734,13 @@ class Message(Object, Update):
                             thread_id = message.reply_to.reply_to_msg_id
                         parsed_message.message_thread_id = thread_id
                         parsed_message.is_topic_message = True
-                        if topics and thread_id in topics:
-                            parsed_message.topic = pyrogram_types.ForumTopic._parse(topics[thread_id])
+                        if topics:
+                            parsed_message.topic = types.ForumTopic._parse(topics[thread_id])
                         else:
                             try:
-                                if parsed_message.chat:
-                                    msg = await client.get_messages(parsed_message.chat.id, message.id)
-                                    if isinstance(msg, Message) and getattr(msg, "topic"):
-                                        parsed_message.topic = msg.topic
+                                msg = await client.get_messages(parsed_message.chat.id,message.id)
+                                if getattr(msg, "topic"):
+                                    parsed_message.topic = msg.topic
                             except Exception:
                                 pass
                     else:
@@ -733,9 +748,9 @@ class Message(Object, Update):
                         parsed_message.reply_to_top_message_id = message.reply_to.reply_to_top_id
                 else:
                     parsed_message.reply_to_story_id = message.reply_to.story_id
-                    if isinstance(message.reply_to.peer, raw_types.PeerUser):
+                    if isinstance(message.reply_to.peer, raw.types.PeerUser):
                         parsed_message.reply_to_story_user_id = message.reply_to.peer.user_id
-                    elif isinstance(message.reply_to.peer, raw_types.PeerChat):
+                    elif isinstance(message.reply_to.peer, raw.types.PeerChat):
                         parsed_message.reply_to_story_chat_id = utils.get_channel_id(message.reply_to.peer.chat_id)
                     else:
                         parsed_message.reply_to_story_chat_id = utils.get_channel_id(message.reply_to.peer.channel_id)
@@ -743,33 +758,45 @@ class Message(Object, Update):
                 if replies:
                     if parsed_message.reply_to_message_id:
                         is_cross_chat = getattr(message.reply_to, "reply_to_peer_id", None) and getattr(message.reply_to.reply_to_peer_id, "channel_id", None)
+
                         if is_cross_chat:
                             key = (utils.get_channel_id(message.reply_to.reply_to_peer_id.channel_id), message.reply_to.reply_to_msg_id)
                             reply_to_params = {"chat_id": key[0], 'message_ids': key[1]}
                         else:
-                            key = (parsed_message.chat.id if parsed_message.chat else 0, parsed_message.reply_to_message_id)
+                            key = (parsed_message.chat.id, parsed_message.reply_to_message_id)
                             reply_to_params = {'chat_id': key[0], 'reply_to_message_ids': message.id}
 
                         try:
                             reply_to_message = client.message_cache[key]
+
                             if not reply_to_message:
                                 try:
-                                    reply_to_message = await client.get_messages(replies=replies - 1, **reply_to_params)
+                                    reply_to_message = await client.get_messages(
+                                        replies=replies - 1,
+                                        **reply_to_params
+                                    )
                                 except (FloodWait, FloodPremiumWait) as e:
                                     await asyncio.sleep(e.value)
-                                    reply_to_message = await client.get_messages(replies=replies - 1, **reply_to_params)
+                                    reply_to_message = await client.get_messages(
+                                        replies=replies - 1,
+                                        **reply_to_params
+                                    )
                                 except ChannelPrivate:
                                     pass
-                            if isinstance(reply_to_message, Message) and not reply_to_message.forum_topic_created:
+                            if reply_to_message and not reply_to_message.forum_topic_created:
                                 parsed_message.reply_to_message = reply_to_message
                         except MessageIdsEmpty:
                             pass
-                    elif parsed_message.reply_to_story_id and parsed_message.reply_to_story_user_id:
+                    elif parsed_message.reply_to_story_id:
                         try:
-                            reply_to_story = await client.get_stories(parsed_message.reply_to_story_user_id, parsed_message.reply_to_story_id)
-                            parsed_message.reply_to_story = reply_to_story
+                            reply_to_story = await client.get_stories(
+                                parsed_message.reply_to_story_user_id,
+                                parsed_message.reply_to_story_id
+                            )
                         except Exception:
                             pass
+                        else:
+                            parsed_message.reply_to_story = reply_to_story
 
             if not parsed_message.poll and parsed_message.chat is not None:
                 client.message_cache[(parsed_message.chat.id, parsed_message.id)] = parsed_message
