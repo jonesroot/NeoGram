@@ -407,6 +407,72 @@ def get_reply_to(
     return None
 
 
+async def _get_reply_message_parameters(
+    client: "pyrogram.Client",
+    message_thread_id: int = None,
+    reply_parameters: "types.ReplyParameters" = None
+) -> "raw.base.InputReplyTo":
+    reply_to = raw.types.InputReplyToMessage(
+        reply_to_msg_id=0
+    )
+    if not reply_parameters:
+        if message_thread_id:
+            reply_to = raw.types.InputReplyToMessage(
+                reply_to_msg_id=message_thread_id,
+                top_msg_id=message_thread_id
+            )
+        return reply_to
+    if (
+        reply_parameters and
+        reply_parameters.story_id and
+        reply_parameters.chat_id
+    ):
+        return raw.types.InputReplyToStory(
+            peer=await client.resolve_peer(reply_parameters.chat_id),
+            story_id=reply_parameters.story_id
+        )
+    reply_to_message_id = reply_parameters.message_id
+    if not reply_to_message_id:
+        if reply_parameters.direct_messages_topic_id:
+            return raw.types.InputReplyToMonoForum(
+                monoforum_peer_id=await client.resolve_peer(
+                    reply_parameters.direct_messages_topic_id
+                )
+            )
+        return reply_to
+    reply_to = raw.types.InputReplyToMessage(
+        reply_to_msg_id=reply_to_message_id
+    )
+    if message_thread_id:
+        reply_to.top_msg_id = message_thread_id
+    # TODO
+    quote = reply_parameters.quote
+    if quote is not None:
+        quote_parse_mode = reply_parameters.quote_parse_mode
+        quote_entities = reply_parameters.quote_entities
+        message, entities = (await parse_text_entities(
+            client,
+            quote,
+            quote_parse_mode,
+            quote_entities
+        )).values()
+        reply_to.quote_text = message
+        reply_to.quote_entities = entities
+    if reply_parameters.chat_id:
+        reply_to.reply_to_peer_id = await client.resolve_peer(reply_parameters.chat_id)
+    if reply_parameters.quote_position:
+        reply_to.quote_offset = reply_parameters.quote_position
+    if reply_parameters.direct_messages_topic_id:
+        reply_to.monoforum_peer_id = await client.resolve_peer(
+            reply_parameters.direct_messages_topic_id
+        )
+    if reply_parameters.checklist_task_id:
+        reply_to.todo_item_id = reply_parameters.checklist_task_id
+    if reply_parameters.poll_option_id:
+        reply_to.poll_option = reply_parameters.poll_option_id.encode("UTF-8")
+    return reply_to
+
+
 def _get_reply_to_message_quote_ids(
     reply_parameters: "types.ReplyParameters" = None,
     message_id: int = None,
@@ -439,6 +505,161 @@ def _get_reply_to_message_quote_ids(
         reply_to_message_id = None
     
     return reply_to_message_id, reply_parameters
+
+
+def is_plain_domain(url):
+    # https://github.com/tdlib/td/blob/d963044/td/telegram/MessageEntity.cpp#L1778
+    return (
+        url.find('/') >= len(url) and
+        url.find('?') >= len(url) and
+        url.find('#') >= len(url)
+    )
+
+
+def get_first_url(
+    message: Union[
+        "raw.types.Message",
+        "raw.types.DraftMessage"
+    ]
+) -> str:
+    text = message.message
+    entities = message.entities
+    # duplicate code copied from parser.
+    text = re.sub(r"^\s*(<[\w<>=\s\"]*>)\s*", r"\1", text)
+    text = re.sub(r"\s*(</[\w</>]*>)\s*$", r"\1", text)
+    SMP_RE = re.compile(r"[\U00010000-\U0010FFFF]")
+    text_ = SMP_RE.sub(
+        lambda match:  # Split SMP in two surrogates
+        "".join(
+            chr(i) for i in struct.unpack(
+                "<HH", match.group().encode("utf-16le")
+            )
+        ),
+        text
+    )
+    url = None
+    for entity in entities:
+        if isinstance(entity, raw.types.MessageEntityTextUrl):
+            url = entity.url
+            if len(url) <= 4:
+                url = None
+                continue
+            else:
+                break
+        elif isinstance(entity, raw.types.MessageEntityUrl):
+            url = text_[entity.offset:entity.offset+entity.length+1]
+            if len(url) <= 4:
+                url = None
+                continue
+            else:
+                break
+    text = text_.encode("utf-16", "surrogatepass").decode("utf-16")
+    if url:
+        if (
+            url.startswith((
+                "ton:", "tg:", "ftp:"
+            )) or
+            is_plain_domain(url)
+        ):
+            return None
+        return url
+    return None
+
+
+def fix_up_voice_audio_uri(
+    client: "pyrogram.Client",
+    file_name: str,
+    dinxe: int
+) -> str:
+    un_posi_mt = [
+        "application/zip",  # 0
+        # https://t.me/c/1220993104/1360174
+        "audio/mpeg",  # 1
+        "audio/ogg",  # 2
+    ]
+    mime_type = client.guess_mime_type(file_name) or un_posi_mt[dinxe]
+    # BEWARE: https://t.me/c/1279877202/31475
+    if dinxe == 1 and mime_type == "audio/ogg":
+        mime_type = "audio/opus"
+    elif dinxe == 2 and mime_type == "audio/mpeg":
+        mime_type = "audio/ogg"
+    # BEWARE: https://t.me/c/1279877202/74
+    return mime_type
+
+
+def expand_inline_bytes(bytes_data: bytes):
+    # https://github.com/telegramdesktop/tdesktop/blob/1757dd856/Telegram/SourceFiles/ui/image/image.cpp#L43-L94
+    if len(bytes_data) < 3 or bytes_data[0] != 0x01:
+        return bytearray()
+    header = bytearray(
+        b"\xff\xd8\xff\xe0\x00\x10\x4a\x46\x49"
+        b"\x46\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00\xff\xdb\x00\x43\x00\x28\x1c"
+        b"\x1e\x23\x1e\x19\x28\x23\x21\x23\x2d\x2b\x28\x30\x3c\x64\x41\x3c\x37\x37"
+        b"\x3c\x7b\x58\x5d\x49\x64\x91\x80\x99\x96\x8f\x80\x8c\x8a\xa0\xb4\xe6\xc3"
+        b"\xa0\xaa\xda\xad\x8a\x8c\xc8\xff\xcb\xda\xee\xf5\xff\xff\xff\x9b\xc1\xff"
+        b"\xff\xff\xfa\xff\xe6\xfd\xff\xf8\xff\xdb\x00\x43\x01\x2b\x2d\x2d\x3c\x35"
+        b"\x3c\x76\x41\x41\x76\xf8\xa5\x8c\xa5\xf8\xf8\xf8\xf8\xf8\xf8\xf8\xf8\xf8"
+        b"\xf8\xf8\xf8\xf8\xf8\xf8\xf8\xf8\xf8\xf8\xf8\xf8\xf8\xf8\xf8\xf8\xf8\xf8"
+        b"\xf8\xf8\xf8\xf8\xf8\xf8\xf8\xf8\xf8\xf8\xf8\xf8\xf8\xf8\xf8\xf8\xf8\xf8"
+        b"\xf8\xf8\xf8\xf8\xf8\xff\xc0\x00\x11\x08\x00\x00\x00\x00\x03\x01\x22\x00"
+        b"\x02\x11\x01\x03\x11\x01\xff\xc4\x00\x1f\x00\x00\x01\x05\x01\x01\x01\x01"
+        b"\x01\x01\x00\x00\x00\x00\x00\x00\x00\x00\x01\x02\x03\x04\x05\x06\x07\x08"
+        b"\x09\x0a\x0b\xff\xc4\x00\xb5\x10\x00\x02\x01\x03\x03\x02\x04\x03\x05\x05"
+        b"\x04\x04\x00\x00\x01\x7d\x01\x02\x03\x00\x04\x11\x05\x12\x21\x31\x41\x06"
+        b"\x13\x51\x61\x07\x22\x71\x14\x32\x81\x91\xa1\x08\x23\x42\xb1\xc1\x15\x52"
+        b"\xd1\xf0\x24\x33\x62\x72\x82\x09\x0a\x16\x17\x18\x19\x1a\x25\x26\x27\x28"
+        b"\x29\x2a\x34\x35\x36\x37\x38\x39\x3a\x43\x44\x45\x46\x47\x48\x49\x4a\x53"
+        b"\x54\x55\x56\x57\x58\x59\x5a\x63\x64\x65\x66\x67\x68\x69\x6a\x73\x74\x75"
+        b"\x76\x77\x78\x79\x7a\x83\x84\x85\x86\x87\x88\x89\x8a\x92\x93\x94\x95\x96"
+        b"\x97\x98\x99\x9a\xa2\xa3\xa4\xa5\xa6\xa7\xa8\xa9\xaa\xb2\xb3\xb4\xb5\xb6"
+        b"\xb7\xb8\xb9\xba\xc2\xc3\xc4\xc5\xc6\xc7\xc8\xc9\xca\xd2\xd3\xd4\xd5\xd6"
+        b"\xd7\xd8\xd9\xda\xe1\xe2\xe3\xe4\xe5\xe6\xe7\xe8\xe9\xea\xf1\xf2\xf3\xf4"
+        b"\xf5\xf6\xf7\xf8\xf9\xfa\xff\xc4\x00\x1f\x01\x00\x03\x01\x01\x01\x01\x01"
+        b"\x01\x01\x01\x01\x00\x00\x00\x00\x00\x00\x01\x02\x03\x04\x05\x06\x07\x08"
+        b"\x09\x0a\x0b\xff\xc4\x00\xb5\x11\x00\x02\x01\x02\x04\x04\x03\x04\x07\x05"
+        b"\x04\x04\x00\x01\x02\x77\x00\x01\x02\x03\x11\x04\x05\x21\x31\x06\x12\x41"
+        b"\x51\x07\x61\x71\x13\x22\x32\x81\x08\x14\x42\x91\xa1\xb1\xc1\x09\x23\x33"
+        b"\x52\xf0\x15\x62\x72\xd1\x0a\x16\x24\x34\xe1\x25\xf1\x17\x18\x19\x1a\x26"
+        b"\x27\x28\x29\x2a\x35\x36\x37\x38\x39\x3a\x43\x44\x45\x46\x47\x48\x49\x4a"
+        b"\x53\x54\x55\x56\x57\x58\x59\x5a\x63\x64\x65\x66\x67\x68\x69\x6a\x73\x74"
+        b"\x75\x76\x77\x78\x79\x7a\x82\x83\x84\x85\x86\x87\x88\x89\x8a\x92\x93\x94"
+        b"\x95\x96\x97\x98\x99\x9a\xa2\xa3\xa4\xa5\xa6\xa7\xa8\xa9\xaa\xb2\xb3\xb4"
+        b"\xb5\xb6\xb7\xb8\xb9\xba\xc2\xc3\xc4\xc5\xc6\xc7\xc8\xc9\xca\xd2\xd3\xd4"
+        b"\xd5\xd6\xd7\xd8\xd9\xda\xe2\xe3\xe4\xe5\xe6\xe7\xe8\xe9\xea\xf2\xf3\xf4"
+        b"\xf5\xf6\xf7\xf8\xf9\xfa\xff\xda\x00\x0c\x03\x01\x00\x02\x11\x03\x11\x00"
+        b"\x3f\x00"
+    )
+    footer = bytearray(b"\xff\xd9")
+    header[164] = bytes_data[1]
+    header[166] = bytes_data[2]
+    return header + bytes_data[3:] + footer
+
+
+def from_inline_bytes(data: bytes, file_name: str = None) -> BytesIO:
+    b = BytesIO()
+    b.write(data)
+    b.name = file_name if file_name else f"photo_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.jpg"
+    return b
+
+
+def is_list_like(obj):
+    """
+    Returns `True` if the given object looks like a list.
+
+    Ported from https://github.com/LonamiWebs/Telethon/blob/1cb5ff1dd54ecfad41711fc5a4ecf36d2ad8eaf6/telethon/utils.py#L902
+    """
+    return isinstance(obj, (list, tuple, set, dict, range))
+
+
+def get_premium_duration_month_count(day_count: int) -> int:
+    return max(1, day_count // 30)
+
+
+def get_premium_duration_day_count(month_count: int) -> int:
+    if month_count <= 0 or month_count > 10000000:
+        return 7
+
+    return month_count * 30 + month_count // 3 + month_count // 12
 
 
 def get_channel_id(peer_id: int) -> int:
