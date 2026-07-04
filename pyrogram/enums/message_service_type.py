@@ -1,21 +1,20 @@
-#  Pyrofork - Telegram MTProto API Client Library for Python
+#  Pyrogram - Telegram MTProto API Client Library for Python
 #  Copyright (C) 2017-present Dan <https://github.com/delivrance>
-#  Copyright (C) 2022-present Mayuri-Chan <https://github.com/Mayuri-Chan>
 #
-#  This file is part of Pyrofork.
+#  This file is part of Pyrogram.
 #
-#  Pyrofork is free software: you can redistribute it and/or modify
+#  Pyrogram is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU Lesser General Public License as published
 #  by the Free Software Foundation, either version 3 of the License, or
 #  (at your option) any later version.
 #
-#  Pyrofork is distributed in the hope that it will be useful,
+#  Pyrogram is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU Lesser General Public License for more details.
 #
 #  You should have received a copy of the GNU Lesser General Public License
-#  along with Pyrofork.  If not, see <http://www.gnu.org/licenses/>.
+#  along with Pyrogram.  If not, see <http://www.gnu.org/licenses/>.
 
 from enum import auto
 
@@ -43,6 +42,9 @@ class MessageServiceType(AutoName):
     GROUP_CHAT_CREATED = auto()
     "Group chat created"
 
+    SUPERGROUP_CHAT_CREATED = auto()
+    "Supergroup chat created"
+
     CHANNEL_CHAT_CREATED = auto()
     "Channel chat created"
 
@@ -58,8 +60,50 @@ class MessageServiceType(AutoName):
     GAME_HIGH_SCORE = auto()
     "Game high score"
 
+    GIVEAWAY_CREATED = auto()
+    "Giveaway Created"
+
+    GIVEAWAY_COMPLETED = auto()
+    "Giveaway Completed"
+
+    GIFT_CODE = auto()
+    "Gift code"
+
+    GIFTED_PREMIUM = auto()
+    "Gifted Premium"
+
+    GIFTED_STARS = auto()
+    "Gifted Stars"
+
+    VIDEO_CHAT_STARTED = auto()
+    "Video chat started"
+
+    VIDEO_CHAT_ENDED = auto()
+    "Video chat ended"
+
+    VIDEO_CHAT_SCHEDULED = auto()
+    "Video chat scheduled"
+
+    VIDEO_CHAT_PARTICIPANTS_INVITED = auto()
+    "Video chat participants invited"
+
+    WEB_APP_DATA = auto()
+    "Web app data"
+
+    USERS_SHARED = auto()
+    "Users Shared"
+
     CHAT_SHARED = auto()
-    "a shared chat/channel/user"
+    "Chat Shared"
+
+    MESSAGE_AUTO_DELETE_TIMER_CHANGED = auto()
+    "Message Auto Delete Timer changed"
+
+    CHAT_BOOST_ADDED = auto()
+    "Chat Boost Added"
+
+    CUSTOM_ACTION = auto()
+    "Custom action"
 
     FORUM_TOPIC_CREATED = auto()
     "a new forum topic created in the chat"
@@ -73,65 +117,65 @@ class MessageServiceType(AutoName):
     FORUM_TOPIC_EDITED = auto()
     "a new forum topic renamed in the chat"
 
-    GENERAL_TOPIC_HIDDEN = auto()
+    GENERAL_FORUM_TOPIC_HIDDEN = auto()
     "a forum general topic hidden in the chat"
 
-    GENERAL_TOPIC_UNHIDDEN = auto()
+    GENERAL_FORUM_TOPIC_UNHIDDEN = auto()
     "a forum general topic unhidden in the chat"
-
-    VIDEO_CHAT_STARTED = auto()
-    "Video chat started"
-
-    VIDEO_CHAT_ENDED = auto()
-    "Video chat ended"
-
-    VIDEO_CHAT_SCHEDULED = auto()
-    "Video chat scheduled"
-
-    VIDEO_CHAT_MEMBERS_INVITED = auto()
-    "Video chat members invited"
-
-    WEB_APP_DATA = auto()
-    "Web app data"
-
-    GIFTED_PREMIUM = auto()
-    "Gifted Premium"
-
-    GIVEAWAY_LAUNCHED = auto()
-    "Giveaway Launch"
-
-    GIVEAWAY_RESULT = auto()
-    "Giveaway Result"
-
-    BOOST_APPLY = auto()
-    "Boost apply"
 
     SUCCESSFUL_PAYMENT = auto()
     "Successful payment"
 
-    PAYMENT_REFUNDED = auto()
-    "Payment refunded"
-
-    BOT_ALLOWED = auto()
-    "Bot allowed"
-
-    CHAT_THEME_UPDATED = auto()
-    "Chat theme updated"
-
-    CHAT_WALLPAPER_UPDATED = auto()
-    "Chat wallpaper updated"
+    REFUNDED_PAYMENT = auto()
+    "Refunded payment"
 
     CONTACT_REGISTERED = auto()
-    "Contact registered"
-
-    GIFT_CODE = auto()
-    "Gift code"
-
-    GIFT = auto()
-    "Star gift"
+    "A contact has registered with Telegram"
 
     SCREENSHOT_TAKEN = auto()
-    "Screenshot taken"
+    "A screenshot of a message in the chat has been taken"
+
+    CONNECTED_WEBSITE = auto()
+    "The user connected a website by logging in using Telegram Login Widget on it"
+
+    WRITE_ACCESS_ALLOWED = auto()
+    "The user accepted webapp bot's request to send messages"
 
     PAID_MESSAGE_PRICE_CHANGED = auto()
-    "Paid message price changed"
+    "The price for paid messages has changed in the chat"
+
+    PAID_MESSAGES_REFUNDED = auto()
+    "Refunded paid messages"
+
+    DIRECT_MESSAGE_PRICE_CHANGED = auto()
+    "Direct message price"
+
+    CHECKLIST_TASKS_DONE = auto()
+    "Checklist tasks done"
+
+    CHECKLIST_TASKS_ADDED = auto()
+    "Checklist tasks added"
+
+    CHAT_OWNER_LEFT = auto()
+    "Chat owner left"
+
+    CHAT_OWNER_CHANGED = auto()
+    "Chat owner changed"
+
+    CHAT_HAS_PROTECTED_CONTENT_TOGGLED = auto()
+    "Chat has_protected_content setting was changed or request to change it was rejected"
+
+    CHAT_HAS_PROTECTED_CONTENT_DISABLE_REQUESTED = auto()
+    "Chat has_protected_content setting was requested to be disabled"
+
+    MANAGED_BOT_CREATED = auto()
+    "A bot managed by another bot was created by the user"
+
+    POLL_OPTION_ADDED = auto()
+    "An option was added to a poll"
+
+    POLL_OPTION_DELETED = auto()
+    "A message with information about a deleted poll option"
+
+    UNKNOWN = auto()
+    "This service message is unsupported by the current version of Pyrogram"
