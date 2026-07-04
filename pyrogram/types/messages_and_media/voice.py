@@ -49,6 +49,9 @@ class Voice(Object):
 
         date (:py:obj:`~datetime.datetime`, *optional*):
             Date the voice was sent.
+
+        ttl_seconds (``int``, *optional*):
+            Time-to-live seconds, for one-time media.
     """
 
     def __init__(
@@ -61,7 +64,8 @@ class Voice(Object):
         waveform: bytes = None,
         mime_type: str = None,
         file_size: int = None,
-        date: datetime = None
+        date: datetime = None,
+        ttl_seconds: int = None
     ):
         super().__init__(client)
 
@@ -72,9 +76,10 @@ class Voice(Object):
         self.mime_type = mime_type
         self.file_size = file_size
         self.date = date
+        self.ttl_seconds = ttl_seconds
 
     @staticmethod
-    def _parse(client, voice: "raw.types.Document", attributes: "raw.types.DocumentAttributeAudio") -> "Voice":
+    def _parse(client, voice: "raw.types.Document", attributes: "raw.types.DocumentAttributeAudio", ttl_seconds: int = None) -> "Voice":
         return Voice(
             file_id=FileId(
                 file_type=FileType.VOICE,
@@ -82,15 +87,16 @@ class Voice(Object):
                 media_id=voice.id,
                 access_hash=voice.access_hash,
                 file_reference=voice.file_reference
-            ).encode(),
+            ).encode() if voice else None,
             file_unique_id=FileUniqueId(
                 file_unique_type=FileUniqueType.DOCUMENT,
                 media_id=voice.id
-            ).encode(),
-            duration=attributes.duration,
-            mime_type=voice.mime_type,
-            file_size=voice.size,
-            waveform=attributes.waveform,
-            date=utils.timestamp_to_datetime(voice.date),
+            ).encode() if voice else None,
+            duration=attributes.duration if attributes else None,
+            mime_type=voice.mime_type if voice else None,
+            file_size=voice.size if voice else None,
+            waveform=attributes.waveform if attributes else None,
+            date=utils.timestamp_to_datetime(voice.date) if voice else None,
+            ttl_seconds=ttl_seconds,
             client=client
         )

@@ -51,6 +51,7 @@ from .text_quote import TextQuote
 from .thumbnail import Thumbnail
 from .venue import Venue
 from .video import Video
+from .video_quality import VideoQuality
 from .video_note import VideoNote
 from .voice import Voice
 from .web_app_data import WebAppData

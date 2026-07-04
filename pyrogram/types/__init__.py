@@ -27,3 +27,4 @@ from .object import Object
 from .update import Update
 from .user_and_chats import *
 from .pyromod import *
+from .message_origin import *

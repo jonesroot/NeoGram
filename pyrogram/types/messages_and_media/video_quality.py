@@ -19,14 +19,13 @@
 from datetime import datetime
 
 import pyrogram
-from pyrogram import raw, utils
-from pyrogram import types
-from pyrogram.file_id import FileId, FileType, FileUniqueId, FileUniqueType
+from pyrogram import raw, types, utils
+from pyrogram.file_id import FileId, FileType, FileUniqueId, FileUniqueType, ThumbnailSource
 from ..object import Object
 
 
-class VideoNote(Object):
-    """A video note.
+class VideoQuality(Object):
+    """Describes a video file of a specific quality.
 
     Parameters:
         file_id (``str``):
@@ -36,26 +35,27 @@ class VideoNote(Object):
             Unique identifier for this file, which is supposed to be the same over time and for different accounts.
             Can't be used to download or reuse the file.
 
-        length (``int``):
-            Video width and height as defined by sender.
+        width (``int``):
+            Video width as defined by sender.
 
-        duration (``int``):
-            Duration of the video in seconds as defined by sender.
+        height (``int``):
+            Video height as defined by sender.
 
-        mime_type (``str``, *optional*):
-            MIME type of the file as defined by sender.
+        codec (``str``):
+            Codec used for video file encoding, for example, "h264", "h265", or "av1".
 
         file_size (``int``, *optional*):
             File size.
 
-        date (:py:obj:`~datetime.datetime`, *optional*):
-            Date the video note was sent.
+        supports_streaming (``bool``, *optional*):
+            True, if the video was uploaded with streaming support.
 
-        ttl_seconds (``int``, *optional*):
-            Time-to-live seconds, for one-time media.
+        date (:py:obj:`~datetime.datetime`, *optional*):
+            Date the video was sent.
 
         thumbs (List of :obj:`~pyrogram.types.Thumbnail`, *optional*):
             Video thumbnails.
+
     """
 
     def __init__(
@@ -64,51 +64,51 @@ class VideoNote(Object):
         client: "pyrogram.Client" = None,
         file_id: str,
         file_unique_id: str,
-        length: int,
-        duration: int,
-        thumbs: list["types.Thumbnail"] = None,
-        mime_type: str = None,
+        width: int,
+        height: int,
+        codec: str,
         file_size: int = None,
+        supports_streaming: bool = None,
         date: datetime = None,
-        ttl_seconds: int = None
+        thumbs: list["types.Thumbnail"] = None
     ):
         super().__init__(client)
 
         self.file_id = file_id
         self.file_unique_id = file_unique_id
-        self.mime_type = mime_type
+        self.width = width
+        self.height = height
+        self.codec = codec
         self.file_size = file_size
+        self.supports_streaming = supports_streaming
         self.date = date
-        self.ttl_seconds = ttl_seconds
-        self.length = length
-        self.duration = duration
         self.thumbs = thumbs
 
     @staticmethod
     def _parse(
         client,
-        video_note: "raw.types.Document",
+        video: "raw.types.Document",
         video_attributes: "raw.types.DocumentAttributeVideo",
-        ttl_seconds: int = None
-    ) -> "VideoNote":
-        return VideoNote(
+        file_name: str
+    ) -> "VideoQuality":
+        return VideoQuality(
             file_id=FileId(
-                file_type=FileType.VIDEO_NOTE,
-                dc_id=video_note.dc_id,
-                media_id=video_note.id,
-                access_hash=video_note.access_hash,
-                file_reference=video_note.file_reference
-            ).encode() if video_note else None,
+                file_type=FileType.VIDEO,
+                dc_id=video.dc_id,
+                media_id=video.id,
+                access_hash=video.access_hash,
+                file_reference=video.file_reference
+            ).encode() if video else None,
             file_unique_id=FileUniqueId(
                 file_unique_type=FileUniqueType.DOCUMENT,
-                media_id=video_note.id
-            ).encode() if video_note else None,
-            length=video_attributes.w if video_attributes else None,
-            duration=video_attributes.duration if video_attributes else None,
-            file_size=video_note.size if video_note else None,
-            mime_type=video_note.mime_type if video_note else None,
-            date=utils.timestamp_to_datetime(video_note.date) if video_note else None,
-            ttl_seconds=ttl_seconds,
-            thumbs=types.Thumbnail._parse(client, video_note) if video_note else None,
+                media_id=video.id
+            ).encode() if video else None,
+            width=video_attributes.w if video_attributes else None,
+            height=video_attributes.h if video_attributes else None,
+            codec=video_attributes.video_codec if video_attributes else None,
+            file_size=video.size if video else None,
+            supports_streaming=video_attributes.supports_streaming if video_attributes else None,
+            date=utils.timestamp_to_datetime(video.date) if video else None,
+            thumbs=types.Thumbnail._parse(client, video) if video else None,
             client=client
         )
