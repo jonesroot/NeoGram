@@ -388,7 +388,7 @@ class Message(Object, Update):
         video_chat_ended (:obj:`~pyrogram.types.VideoChatEnded`, *optional*):
             Service message: the voice chat has ended.
 
-        video_chat_participants_invited (:obj:`~pyrogram.types.VideoChatParticipantsInvited`, *optional*):
+        video_chat_members_invited (:obj:`~pyrogram.types.VideoChatParticipantsInvited`, *optional*):
             Service message: new members were invited to the voice chat.
 
         web_app_data (:obj:`~pyrogram.types.WebAppData`, *optional*):
@@ -584,7 +584,7 @@ class Message(Object, Update):
         video_chat_scheduled: "types.VideoChatScheduled" = None,
         video_chat_started: "types.VideoChatStarted" = None,
         video_chat_ended: "types.VideoChatEnded" = None,
-        video_chat_participants_invited: "types.VideoChatParticipantsInvited" = None,
+        video_chat_members_invited: "types.VideoChatParticipantsInvited" = None,
         web_app_data: "types.WebAppData" = None,
         reply_markup: Union[
             "types.InlineKeyboardMarkup",
@@ -692,7 +692,7 @@ class Message(Object, Update):
         self.video_chat_scheduled = video_chat_scheduled
         self.video_chat_started = video_chat_started
         self.video_chat_ended = video_chat_ended
-        self.video_chat_participants_invited = video_chat_participants_invited
+        self.video_chat_members_invited = video_chat_members_invited
         self.web_app_data = web_app_data
         self.reactions = reactions
         self.link_preview_options = link_preview_options
@@ -825,7 +825,7 @@ class Message(Object, Update):
             video_chat_scheduled = None
             video_chat_started = None
             video_chat_ended = None
-            video_chat_participants_invited = None
+            video_chat_members_invited = None
             web_app_data = None
             gift_code = None
             gifted_premium = None
@@ -933,7 +933,7 @@ class Message(Object, Update):
                     video_chat_started = types.VideoChatStarted()
                     service_type = enums.MessageServiceType.VIDEO_CHAT_STARTED
             elif isinstance(action, raw.types.MessageActionInviteToGroupCall):
-                video_chat_participants_invited = types.VideoChatParticipantsInvited._parse(client, action, users)
+                video_chat_members_invited = types.VideoChatParticipantsInvited._parse(client, action, users)
                 service_type = enums.MessageServiceType.VIDEO_CHAT_PARTICIPANTS_INVITED
             elif isinstance(action, (raw.types.MessageActionWebViewDataSentMe, raw.types.MessageActionWebViewDataSent)):
                 web_app_data = types.WebAppData._parse(action)
@@ -1194,7 +1194,7 @@ class Message(Object, Update):
                 video_chat_scheduled=video_chat_scheduled,
                 video_chat_started=video_chat_started,
                 video_chat_ended=video_chat_ended,
-                video_chat_participants_invited=video_chat_participants_invited,
+                video_chat_members_invited=video_chat_members_invited,
                 web_app_data=web_app_data,
                 giveaway_created=giveaway_created,
                 giveaway_completed=giveaway_completed,
