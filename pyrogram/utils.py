@@ -24,6 +24,7 @@ import functools
 import hashlib
 import os
 import struct
+import re
 from io import BytesIO
 from concurrent.futures.thread import ThreadPoolExecutor
 from datetime import datetime, timezone
