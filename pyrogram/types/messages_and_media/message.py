@@ -388,7 +388,7 @@ class Message(Object, Update):
         video_chat_ended (:obj:`~pyrogram.types.VideoChatEnded`, *optional*):
             Service message: the voice chat has ended.
 
-        video_chat_members_invited (:obj:`~pyrogram.types.VideoChatParticipantsInvited`, *optional*):
+        video_chat_members_invited (:obj:`~pyrogram.types.VideoChatMembersInvited`, *optional*):
             Service message: new members were invited to the voice chat.
 
         web_app_data (:obj:`~pyrogram.types.WebAppData`, *optional*):
@@ -584,7 +584,7 @@ class Message(Object, Update):
         video_chat_scheduled: "types.VideoChatScheduled" = None,
         video_chat_started: "types.VideoChatStarted" = None,
         video_chat_ended: "types.VideoChatEnded" = None,
-        video_chat_members_invited: "types.VideoChatParticipantsInvited" = None,
+        video_chat_members_invited: "types.VideoChatMembersInvited" = None,
         web_app_data: "types.WebAppData" = None,
         reply_markup: Union[
             "types.InlineKeyboardMarkup",
@@ -933,7 +933,7 @@ class Message(Object, Update):
                     video_chat_started = types.VideoChatStarted()
                     service_type = enums.MessageServiceType.VIDEO_CHAT_STARTED
             elif isinstance(action, raw.types.MessageActionInviteToGroupCall):
-                video_chat_members_invited = types.VideoChatParticipantsInvited._parse(client, action, users)
+                video_chat_members_invited = types.VideoChatMembersInvited._parse(client, action, users)
                 service_type = enums.MessageServiceType.VIDEO_CHAT_PARTICIPANTS_INVITED
             elif isinstance(action, (raw.types.MessageActionWebViewDataSentMe, raw.types.MessageActionWebViewDataSent)):
                 web_app_data = types.WebAppData._parse(action)
