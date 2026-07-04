@@ -26,9 +26,9 @@ from pyrogram import types
 
 class JoinChat:
     async def join_chat(
-        self: "pyrogram.Client",
+        self: "pyrogram.Client", # pyright: ignore[reportGeneralTypeIssues]
         chat_id: Union[int, str]
-    ) -> "types.Chat":
+    ) -> "types.Chat": # pyright: ignore[reportReturnType]
         """Join a group chat or channel.
 
         .. include:: /_includes/usable-by/users.rst
@@ -57,17 +57,17 @@ class JoinChat:
 
         if match:
             chat = await self.invoke(
-                raw.functions.messages.ImportChatInvite(
+                raw.functions.messages.ImportChatInvite( # pyright: ignore[reportAttributeAccessIssue]
                     hash=match.group(1)
                 )
             )
-            if isinstance(chat.chats[0], raw.types.Chat):
+            if isinstance(chat.chats[0], raw.types.Chat): # pyright: ignore[reportAttributeAccessIssue]
                 return types.Chat._parse_chat_chat(self, chat.chats[0])
-            elif isinstance(chat.chats[0], raw.types.Channel):
+            elif isinstance(chat.chats[0], raw.types.Channel): # pyright: ignore[reportAttributeAccessIssue]
                 return types.Chat._parse_channel_chat(self, chat.chats[0])
         else:
             chat = await self.invoke(
-                raw.functions.channels.JoinChannel(
+                raw.functions.channels.JoinChannel( # pyright: ignore[reportAttributeAccessIssue]
                     channel=await self.resolve_peer(chat_id)
                 )
             )
