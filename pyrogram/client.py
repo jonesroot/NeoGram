@@ -186,6 +186,10 @@ class Client(Methods):
 
         link_preview_options (:obj:`~pyrogram.types.LinkPreviewOptions`, *optional*):
             Set the global link preview options for the client. By default, no link preview option is set.
+
+        fetch_replies (``int``, *optional*):
+            Set the number of replies to be fetched when parsing the :obj:`~pyrogram.types.Message` object. Defaults to 1.
+            :doc:`More on Errors <../../api/errors/index>`
     """
 
     APP_VERSION = f"Pyrogram {__version__}"
@@ -236,6 +240,7 @@ class Client(Methods):
         hide_password: bool = False,
         max_concurrent_transmissions: int = MAX_CONCURRENT_TRANSMISSIONS,
         link_preview_options: "types.LinkPreviewOptions" = None,
+        fetch_replies: int = 1,
         connection_factory: builtins.type[Connection] = Connection,
         protocol_factory: builtins.type[TCP] = TCPAbridged,
         message_cache_size: int = 1000,
@@ -268,6 +273,7 @@ class Client(Methods):
         self.hide_password = hide_password
         self.max_concurrent_transmissions = max_concurrent_transmissions
         self.link_preview_options = link_preview_options
+        self.fetch_replies = fetch_replies
         self.connection_factory = connection_factory
         self.protocol_factory = protocol_factory
         self.message_cache_size = message_cache_size
