@@ -19,6 +19,7 @@
 from .button_style import ButtonStyle
 from .chat_action import ChatAction
 from .chat_event_action import ChatEventAction
+from .chat_join_type import ChatJoinType
 from .chat_member_status import ChatMemberStatus
 from .chat_members_filter import ChatMembersFilter
 from .chat_type import ChatType
@@ -43,6 +44,7 @@ __all__ = [
     'ButtonStyle',
     'ChatAction',
     'ChatEventAction',
+    "ChatJoinType",
     'ChatMemberStatus',
     'ChatMembersFilter',
     'ChatType',
