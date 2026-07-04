@@ -27,7 +27,8 @@ from pyrogram import utils, types, raw
 from pyrogram.handlers import (
     CallbackQueryHandler, MessageHandler, EditedMessageHandler, ErrorHandler, DeletedMessagesHandler,
     UserStatusHandler, RawUpdateHandler, InlineQueryHandler, PollHandler,
-    ChosenInlineResultHandler, ChatMemberUpdatedHandler, ChatJoinRequestHandler, StoryHandler
+    ChosenInlineResultHandler, ChatMemberUpdatedHandler, ChatJoinRequestHandler, StoryHandler, MessageReactionUpdatedHandler,
+    MessageReactionCountUpdatedHandler,
 )
 
 log = logging.getLogger(__name__)
@@ -45,6 +46,8 @@ class Dispatcher:
     CHOSEN_INLINE_RESULT_UPDATES = (raw.types.UpdateBotInlineSend,)
     CHAT_JOIN_REQUEST_UPDATES = (raw.types.UpdateBotChatInviteRequester,)
     NEW_STORY_UPDATES = (raw.types.UpdateStory,)
+    MESSAGE_BOT_NA_REACTION_UPDATES = (raw.types.UpdateBotMessageReaction,)
+    MESSAGE_BOT_A_REACTION_UPDATES = (raw.types.UpdateBotMessageReactions,)
 
     def __init__(self, client: "pyrogram.Client"):
         self.client = client
@@ -120,6 +123,18 @@ class Dispatcher:
                 pyrogram.types.ChatJoinRequest._parse(self.client, update, users, chats),
                 ChatJoinRequestHandler
             )
+        
+        async def message_bot_na_reaction_parser(update, users, chats):
+            return (
+                pyrogram.types.MessageReactionUpdated._parse(self.client, update, users, chats),
+                MessageReactionUpdatedHandler
+            )
+
+        async def message_bot_a_reaction_parser(update, users, chats):
+            return (
+                pyrogram.types.MessageReactionCountUpdated._parse(self.client, update, users, chats),
+                MessageReactionCountUpdatedHandler
+            )
 
         async def story_parser(update, users, chats):
             return (
@@ -136,6 +151,8 @@ class Dispatcher:
             Dispatcher.BOT_INLINE_QUERY_UPDATES: inline_query_parser,
             Dispatcher.POLL_UPDATES: poll_parser,
             Dispatcher.CHOSEN_INLINE_RESULT_UPDATES: chosen_inline_result_parser,
+            Dispatcher.MESSAGE_BOT_NA_REACTION_UPDATES: message_bot_na_reaction_parser,
+            Dispatcher.MESSAGE_BOT_A_REACTION_UPDATES: message_bot_a_reaction_parser,
             Dispatcher.CHAT_MEMBER_UPDATES: chat_member_updated_parser,
             Dispatcher.CHAT_JOIN_REQUEST_UPDATES: chat_join_request_parser,
             Dispatcher.NEW_STORY_UPDATES: story_parser

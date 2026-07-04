@@ -16,43 +16,22 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with Pyrogram.  If not, see <http://www.gnu.org/licenses/>.
 
-from .advanced import Advanced
-from .auth import Auth
-from .bots import Bots
-from .chats import Chats
-from .contacts import Contacts
-from .decorators import Decorators
-from .invite_links import InviteLinks
-from .messages import Messages
-from .password import Password
-from .premium import Premium
-from .users import Users
-from .stories import Stories
-from .stickers import Stickers
-from .utilities import Utilities
-from .pyromod import Pyromod
-from .folders import Folders
-from .phone import Phone
-from .chat_topics import ChatTopics
+import pyrogram
+from pyrogram import raw, types
 
-class Methods(
-    Advanced,
-    Auth,
-    Bots,
-    Contacts,
-    Password,
-    Premium,
-    Chats,
-    Users,
-    Stories,
-    Messages,
-    Decorators,
-    Stickers,
-    Utilities,
-    InviteLinks,
-    Pyromod,
-    Folders,
-    Phone,
-    ChatTopics
-):
-    pass
+
+class GetForumTopicIconStickers:
+    async def get_forum_topic_icon_stickers(
+        self: "pyrogram.Client"
+    ) -> list["types.Sticker"]:
+        """Use this method to get custom emoji stickers, which can be used as a forum topic icon by any user.
+
+        .. include:: /_includes/usable-by/users-bots.rst
+
+        Returns:
+            List of :obj:`~pyrogram.types.Sticker`: On success, a list of sticker objects is returned.
+        """
+        r, _ = await self._get_raw_stickers(
+            raw.types.InputStickerSetEmojiDefaultTopicIcons()
+        )
+        return r

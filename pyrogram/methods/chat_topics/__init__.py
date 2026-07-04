@@ -16,43 +16,30 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with Pyrogram.  If not, see <http://www.gnu.org/licenses/>.
 
-from .advanced import Advanced
-from .auth import Auth
-from .bots import Bots
-from .chats import Chats
-from .contacts import Contacts
-from .decorators import Decorators
-from .invite_links import InviteLinks
-from .messages import Messages
-from .password import Password
-from .premium import Premium
-from .users import Users
-from .stories import Stories
-from .stickers import Stickers
-from .utilities import Utilities
-from .pyromod import Pyromod
-from .folders import Folders
-from .phone import Phone
-from .chat_topics import ChatTopics
+from .get_forum_topic_icon_stickers import GetForumTopicIconStickers
+from .create_forum_topic import CreateForumTopic
+from .edit_forum_topic import EditForumTopic
+from .close_forum_topic import CloseForumTopic
+from .reopen_forum_topic import ReopenForumTopic
+from .hide_forum_topic import HideForumTopic
+from .unhide_forum_topic import UnhideForumTopic
+from .delete_forum_topic import DeleteForumTopic
+from .get_forum_topics import GetForumTopics
+from .get_forum_topic import GetForumTopic
+from .toggle_forum_topic_is_pinned import ToggleForumTopicIsPinned
 
-class Methods(
-    Advanced,
-    Auth,
-    Bots,
-    Contacts,
-    Password,
-    Premium,
-    Chats,
-    Users,
-    Stories,
-    Messages,
-    Decorators,
-    Stickers,
-    Utilities,
-    InviteLinks,
-    Pyromod,
-    Folders,
-    Phone,
-    ChatTopics
+
+class ChatTopics(
+    CloseForumTopic,
+    CreateForumTopic,
+    DeleteForumTopic,
+    EditForumTopic,
+    GetForumTopic,
+    GetForumTopicIconStickers,
+    GetForumTopics,
+    HideForumTopic,
+    ReopenForumTopic,
+    UnhideForumTopic,
+    ToggleForumTopicIsPinned,
 ):
     pass
