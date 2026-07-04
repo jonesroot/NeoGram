@@ -31,6 +31,7 @@ from .forum_topic_created import ForumTopicCreated
 from .forum_topic_closed import ForumTopicClosed
 from .forum_topic_reopened import ForumTopicReopened
 from .forum_topic_edited import ForumTopicEdited
+from .message_auto_delete_timer_changed import MessageAutoDeleteTimerChanged
 from .general_forum_topic_hidden import GeneralTopicHidden
 from .general_forum_topic_unhidden import GeneralTopicUnhidden
 from .game import Game
@@ -63,7 +64,7 @@ from .message_story import MessageStory
 from .my_boost import MyBoost
 
 __all__ = [
-    "Animation", "Audio", "AvailableEffect", "BoostsStatus", "Contact", "ContactRegistered", "DirectMessagesTopic", "Document", "ExternalReplyInfo", "ForumTopic", "ForumTopicCreated",
+    "Animation", "Audio", "AvailableEffect", "BoostsStatus", "Contact", "MessageAutoDeleteTimerChanged", "ContactRegistered", "DirectMessagesTopic", "Document", "ExternalReplyInfo", "ForumTopic", "ForumTopicCreated",
     "ForumTopicClosed", "ForumTopicReopened", "ForumTopicEdited", "GeneralTopicHidden",
     "GeneralTopicUnhidden", "Game", "Giveaway", "Location", "Message", "MessageEntity", "Photo", "Thumbnail",
     "StrippedThumbnail", "Story", "StoryDeleted", "StorySkipped", "StoryViews", "TextQuote", "Poll", "PollOption", "Sticker",

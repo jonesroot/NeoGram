@@ -42,7 +42,7 @@ class SendMessage:
         message_thread_id: int = None,
         business_connection_id: str = None,
         send_as: Union[int, str] = None,
-        message_effect_id: int = None,
+        effect_id: int = None,
         reply_parameters: "types.ReplyParameters" = None,
         reply_markup: Union[
             "types.InlineKeyboardMarkup",
@@ -103,7 +103,7 @@ class SendMessage:
                 This setting applies to the current message and will remain effective for future messages unless explicitly changed.
                 To set this behavior permanently for all messages, use :meth:`~pyrogram.Client.set_send_as_chat`.
 
-            message_effect_id (``int`` ``64-bit``, *optional*):
+            effect_id (``int`` ``64-bit``, *optional*):
                 Unique identifier of the message effect to be added to the message; for private chats only.
 
             reply_parameters (:obj:`~pyrogram.types.ReplyParameters`, *optional*):
@@ -234,7 +234,7 @@ class SendMessage:
                     noforwards=protect_content,
                     allow_paid_floodskip=allow_paid_broadcast,
                     allow_paid_stars=paid_message_star_count,
-                    effect=message_effect_id
+                    effect=effect_id
                 )
                 if business_connection_id:
                     r = await session.invoke(
@@ -282,7 +282,7 @@ class SendMessage:
                     message=message,
                     entities=entities,
                     # TODO
-                    effect=message_effect_id
+                    effect=effect_id
                 )
                 if business_connection_id:
                     r = await session.invoke(
@@ -315,7 +315,7 @@ class SendMessage:
                 message=message,
                 entities=entities,
                 # TODO
-                effect=message_effect_id
+                effect=effect_id
             )
             if business_connection_id:
                 r = await session.invoke(
