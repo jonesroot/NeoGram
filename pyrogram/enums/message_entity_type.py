@@ -84,5 +84,17 @@ class MessageEntityType(AutoName):
     CUSTOM_EMOJI = raw.types.MessageEntityCustomEmoji
     "Custom emoji"
 
+    DATE_TIME = raw.types.MessageEntityFormattedDate
+    "for formatted date and time (see ``unix_time`` and ``date_time_format``)"
+
+    DIFF_TYPE_INSERT = raw.types.MessageEntityDiffInsert
+    "Represents a change of a text: Addition of some text"
+
+    DIFF_TYPE_REPLACE = raw.types.MessageEntityDiffReplace
+    "Represents a change of a text: Change of some text"
+
+    DIFF_TYPE_DELETE = raw.types.MessageEntityDiffDelete
+    "Represents a change of a text: Removal of some text"
+
     UNKNOWN = raw.types.MessageEntityUnknown
     "Unknown message entity type"
