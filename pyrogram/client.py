@@ -183,6 +183,9 @@ class Client(Methods):
             Set the maximum amount of concurrent transmissions (uploads & downloads).
             A value that is too high may result in network related issues.
             Defaults to 1.
+
+        link_preview_options (:obj:`~pyrogram.types.LinkPreviewOptions`, *optional*):
+            Set the global link preview options for the client. By default, no link preview option is set.
     """
 
     APP_VERSION = f"Pyrogram {__version__}"
@@ -232,6 +235,7 @@ class Client(Methods):
         sleep_threshold: int = Session.SLEEP_THRESHOLD,
         hide_password: bool = False,
         max_concurrent_transmissions: int = MAX_CONCURRENT_TRANSMISSIONS,
+        link_preview_options: "types.LinkPreviewOptions" = None,
         connection_factory: builtins.type[Connection] = Connection,
         protocol_factory: builtins.type[TCP] = TCPAbridged,
         message_cache_size: int = 1000,
@@ -263,6 +267,7 @@ class Client(Methods):
         self.sleep_threshold = sleep_threshold
         self.hide_password = hide_password
         self.max_concurrent_transmissions = max_concurrent_transmissions
+        self.link_preview_options = link_preview_options
         self.connection_factory = connection_factory
         self.protocol_factory = protocol_factory
         self.message_cache_size = message_cache_size

@@ -17,10 +17,10 @@
 #  along with Pyrogram.  If not, see <http://www.gnu.org/licenses/>.
 
 import re
-
 from typing import Optional
+
 import pyrogram
-from pyrogram import raw, types, utils, enums
+from pyrogram import raw, types, utils
 from ..object import Object
 from ..update import Update
 
@@ -30,8 +30,8 @@ class ChosenInlineResult(Object, Update):
 
     .. note::
 
-        In order to receive these updates, your bot must have "inline feedback" enabled. You can enable this feature
-        with `@BotFather <https://t.me/botfather>`_.
+        In order to receive these updates, your bot must have "inline feedback" enabled.
+        You can enable this feature with `@BotFather <https://t.me/botfather>`_.
 
     Parameters:
         result_id (``str``):
@@ -50,6 +50,10 @@ class ChosenInlineResult(Object, Update):
             Identifier of the sent inline message.
             Available only if there is an :doc:`inline keyboard <InlineKeyboardMarkup>` attached to the message.
             Will be also received in :doc:`callback queries <CallbackQuery>` and can be used to edit the message.
+
+        matches (List of regex Matches, *optional*):
+            A list containing all `Match Objects <https://docs.python.org/3/library/re.html#match-objects>`_ that match
+            the query of this inline query. Only applicable when using :obj:`Filters.regex <pyrogram.Filters.regex>`.
     """
 
     def __init__(
@@ -90,12 +94,13 @@ class ChosenInlineResult(Object, Update):
             inline_message_id=inline_message_id,
             client=client
         )
-    
+
     async def edit_message_text(
         self,
         text: str,
         parse_mode: Optional["enums.ParseMode"] = None,
         entities: list["types.MessageEntity"] = None,
+        link_preview_options: "types.LinkPreviewOptions" = None,
         reply_markup: "types.InlineKeyboardMarkup" = None
     ) -> bool:
         """Edit the text of messages attached to sent :obj:`~pyrogram.types.InlineQueryResult` messages.
@@ -113,6 +118,9 @@ class ChosenInlineResult(Object, Update):
             entities (List of :obj:`~pyrogram.types.MessageEntity`):
                 List of special entities that appear in message text, which can be specified instead of *parse_mode*.
 
+            link_preview_options (:obj:`~pyrogram.types.LinkPreviewOptions`, *optional*):
+                Link preview generation options for the message
+
             reply_markup (:obj:`~pyrogram.types.InlineKeyboardMarkup`, *optional*):
                 An InlineKeyboardMarkup object.
 
@@ -120,7 +128,8 @@ class ChosenInlineResult(Object, Update):
             ``bool``: On success, True is returned.
 
         Raises:
-            RPCError: In case of a Telegram RPC error.
+            :obj:`~pyrogram.errors.RPCError`: In case of a Telegram RPC error.
+
         """
         if self.inline_message_id is None:
             raise ValueError("Identifier of the inline message is required to edit the message")
@@ -130,6 +139,7 @@ class ChosenInlineResult(Object, Update):
                 text=text,
                 parse_mode=parse_mode,
                 entities=entities,
+                link_preview_options=link_preview_options,
                 reply_markup=reply_markup
             )
 
@@ -162,7 +172,8 @@ class ChosenInlineResult(Object, Update):
             ``bool``: On success, True is returned.
 
         Raises:
-            RPCError: In case of a Telegram RPC error.
+            :obj:`~pyrogram.errors.RPCError`: In case of a Telegram RPC error.
+
         """
         return await self.edit_message_text(
             text=caption,
@@ -175,7 +186,6 @@ class ChosenInlineResult(Object, Update):
         self,
         media: "types.InputMedia",
         reply_markup: "types.InlineKeyboardMarkup" = None,
-        file_name: str = None
     ) -> bool:
         """Edit animation, audio, document, photo or video messages attached to sent :obj:`~pyrogram.types.InlineQueryResult` messages.
 
@@ -188,15 +198,12 @@ class ChosenInlineResult(Object, Update):
             reply_markup (:obj:`~pyrogram.types.InlineKeyboardMarkup`, *optional*):
                 An InlineKeyboardMarkup object.
 
-            file_name (``str``, *optional*):
-                File name of the media to be sent. Not applicable to photos.
-                Defaults to file's path basename.
-
         Returns:
             ``bool``: On success, True is returned.
 
         Raises:
-            RPCError: In case of a Telegram RPC error.
+            :obj:`~pyrogram.errors.RPCError`: In case of a Telegram RPC error.
+
         """
         if self.inline_message_id is None:
             raise ValueError("Identifier of the inline message is required to edit the message")
@@ -223,7 +230,8 @@ class ChosenInlineResult(Object, Update):
             ``bool``: On success, True is returned.
 
         Raises:
-            RPCError: In case of a Telegram RPC error.
+            :obj:`~pyrogram.errors.RPCError`: In case of a Telegram RPC error.
+
         """
         if self.inline_message_id is None:
             raise ValueError("Identifier of the inline message is required to edit the message")
@@ -232,4 +240,3 @@ class ChosenInlineResult(Object, Update):
                 inline_message_id=self.inline_message_id,
                 reply_markup=reply_markup
             )
-

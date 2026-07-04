@@ -16,7 +16,8 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with Pyrogram.  If not, see <http://www.gnu.org/licenses/>.
 
-from typing import Union, List, Optional
+from datetime import datetime
+from typing import Union, Optional
 
 import pyrogram
 from pyrogram import types, enums
@@ -29,8 +30,11 @@ class EditMessageCaption:
         message_id: int,
         caption: str,
         parse_mode: Optional["enums.ParseMode"] = None,
-        caption_entities: List["types.MessageEntity"] = None,
-        reply_markup: "types.InlineKeyboardMarkup" = None
+        caption_entities: list["types.MessageEntity"] = None,
+        show_caption_above_media: bool = None,
+        reply_markup: "types.InlineKeyboardMarkup" = None,
+        schedule_date: datetime = None,
+        business_connection_id: str = None
     ) -> "types.Message":
         """Edit the caption of media messages.
 
@@ -55,8 +59,17 @@ class EditMessageCaption:
             caption_entities (List of :obj:`~pyrogram.types.MessageEntity`):
                 List of special entities that appear in the caption, which can be specified instead of *parse_mode*.
 
+            show_caption_above_media (``bool``, *optional*):
+                Pass True, if the caption must be shown above the message media. Supported only for animation, photo and video messages.
+
             reply_markup (:obj:`~pyrogram.types.InlineKeyboardMarkup`, *optional*):
                 An InlineKeyboardMarkup object.
+
+            schedule_date (:py:obj:`~datetime.datetime`, *optional*):
+                Date when the message will be automatically sent.
+
+            business_connection_id (``str``, *optional*):
+                Unique identifier of the business connection on behalf of which the message to be edited was sent
 
         Returns:
             :obj:`~pyrogram.types.Message`: On success, the edited message is returned.
@@ -66,11 +79,20 @@ class EditMessageCaption:
 
                 await app.edit_message_caption(chat_id, message_id, "new media caption")
         """
+        link_preview_options = None
+        if show_caption_above_media:
+            link_preview_options = types.LinkPreviewOptions(
+                show_above_text=show_caption_above_media
+            )
+
         return await self.edit_message_text(
             chat_id=chat_id,
             message_id=message_id,
             text=caption,
             parse_mode=parse_mode,
             entities=caption_entities,
-            reply_markup=reply_markup
+            reply_markup=reply_markup,
+            link_preview_options=link_preview_options,
+            schedule_date=schedule_date,
+            business_connection_id=business_connection_id
         )

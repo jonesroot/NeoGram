@@ -16,12 +16,16 @@
 #  You should have received a copy of the GNU Lesser General Public License
 #  along with Pyrogram.  If not, see <http://www.gnu.org/licenses/>.
 
-from typing import Union, List, Optional
+import logging
+from datetime import datetime
+from typing import Union, Optional
 
 import pyrogram
-from pyrogram import raw, enums
-from pyrogram import types
-from pyrogram import utils
+from pyrogram import raw, enums, types, utils
+
+from .inline_session import get_session
+
+log = logging.getLogger(__name__)
 
 
 class EditMessageText:
@@ -31,9 +35,12 @@ class EditMessageText:
         message_id: int,
         text: str,
         parse_mode: Optional["enums.ParseMode"] = None,
-        entities: List["types.MessageEntity"] = None,
-        disable_web_page_preview: bool = None,
-        reply_markup: "types.InlineKeyboardMarkup" = None
+        entities: list["types.MessageEntity"] = None,
+        link_preview_options: "types.LinkPreviewOptions" = None,
+        reply_markup: "types.InlineKeyboardMarkup" = None,
+        schedule_date: datetime = None,
+        business_connection_id: str = None,
+        disable_web_page_preview: bool = None
     ) -> "types.Message":
         """Edit the text of messages.
 
@@ -58,11 +65,17 @@ class EditMessageText:
             entities (List of :obj:`~pyrogram.types.MessageEntity`):
                 List of special entities that appear in message text, which can be specified instead of *parse_mode*.
 
-            disable_web_page_preview (``bool``, *optional*):
-                Disables link previews for links in this message.
+            link_preview_options (:obj:`~pyrogram.types.LinkPreviewOptions`, *optional*):
+                Link preview generation options for the message. Ignored if the specified URL does not have a valid preview.
 
             reply_markup (:obj:`~pyrogram.types.InlineKeyboardMarkup`, *optional*):
                 An InlineKeyboardMarkup object.
+
+            schedule_date (:py:obj:`~datetime.datetime`, *optional*):
+                Date when the message will be automatically sent.
+
+            business_connection_id (``str``, *optional*):
+                Unique identifier of the business connection on behalf of which the message to be edited was sent
 
         Returns:
             :obj:`~pyrogram.types.Message`: On success, the edited message is returned.
@@ -76,23 +89,97 @@ class EditMessageText:
                 # Take the same text message, remove the web page preview only
                 await app.edit_message_text(
                     chat_id, message_id, message.text,
-                    disable_web_page_preview=True)
+                    link_preview_options=types.LinkPreviewOptions(
+                        is_disabled=True
+                    )
+                )
         """
-
-        r = await self.invoke(
-            raw.functions.messages.EditMessage(
-                peer=await self.resolve_peer(chat_id),
-                id=message_id,
-                no_webpage=disable_web_page_preview or None,
-                reply_markup=await reply_markup.write(self) if reply_markup else None,
-                **await utils.parse_text_entities(self, text, parse_mode, entities)
+        if disable_web_page_preview and link_preview_options:
+            raise ValueError(
+                "Parameters `disable_web_page_preview` and `link_preview_options` are mutually "
+                "exclusive."
             )
+
+        if disable_web_page_preview is not None:
+            log.warning(
+                "This property is deprecated. "
+                "Please use link_preview_options instead"
+            )
+            link_preview_options = types.LinkPreviewOptions(is_disabled=disable_web_page_preview)
+
+        link_preview_options = link_preview_options or self.link_preview_options
+
+        media = None
+        if (
+            link_preview_options and
+            link_preview_options.url
+        ):
+            media = raw.types.InputMediaWebPage(
+                url=link_preview_options.url,
+                force_large_media=link_preview_options.prefer_large_media,
+                force_small_media=link_preview_options.prefer_small_media,
+                optional=True
+            )
+
+        rpc = raw.functions.messages.EditMessage(
+            peer=await self.resolve_peer(chat_id),
+            id=message_id,
+            no_webpage=link_preview_options.is_disabled if link_preview_options else None,
+            invert_media=link_preview_options.show_above_text if link_preview_options else None,
+            media=media,
+            reply_markup=await reply_markup.write(self) if reply_markup else None,
+            schedule_date=utils.datetime_to_timestamp(schedule_date),
+            **await utils.parse_text_entities(self, text, parse_mode, entities)
         )
+        session = None
+        business_connection = None
+        if business_connection_id:
+            business_connection = self.business_user_connection_cache[business_connection_id]
+            if business_connection is None:
+                business_connection = await self.get_business_connection(business_connection_id)
+            session = await get_session(
+                self,
+                business_connection._raw.connection.dc_id
+            )
+        if business_connection_id:
+            r = await session.invoke(
+                raw.functions.InvokeWithBusinessConnection(
+                    query=rpc,
+                    connection_id=business_connection_id
+                )
+            )
+            # await session.stop()
+        else:
+            r = await self.invoke(rpc)
 
         for i in r.updates:
-            if isinstance(i, (raw.types.UpdateEditMessage, raw.types.UpdateEditChannelMessage)):
+            if isinstance(
+                i,
+                (
+                    raw.types.UpdateEditMessage,
+                    raw.types.UpdateEditChannelMessage,
+                    raw.types.UpdateNewScheduledMessage
+                )
+            ):
                 return await types.Message._parse(
                     self, i.message,
                     {i.id: i for i in r.users},
-                    {i.id: i for i in r.chats}
+                    {i.id: i for i in r.chats},
+                    is_scheduled=isinstance(i, raw.types.UpdateNewScheduledMessage),
+                    replies=self.fetch_replies
+                )
+            elif isinstance(
+                i,
+                (
+                    raw.types.UpdateBotEditBusinessMessage
+                )
+            ):
+                return await types.Message._parse(
+                    self,
+                    i.message,
+                    {i.id: i for i in r.users},
+                    {i.id: i for i in r.chats},
+                    business_connection_id=getattr(i, "connection_id", business_connection_id),
+                    raw_reply_to_message=i.reply_to_message,
+                    replies=0
                 )
