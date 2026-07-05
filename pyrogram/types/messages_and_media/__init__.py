@@ -39,7 +39,6 @@ from .message_entity import MessageEntity
 from .photo import Photo
 from .poll import Poll
 from .poll_option import PollOption
-from .reaction import Reaction
 from .sticker import Sticker
 from .stickerset import StickerSet
 from .stripped_thumbnail import StrippedThumbnail
@@ -58,6 +57,16 @@ from .web_page import WebPage
 from .message_reactions import MessageReactions
 from .message_story import MessageStory
 from .my_boost import MyBoost
+from .message_reaction_updated import MessageReactionUpdated
+from .message_reaction_count_updated import MessageReactionCountUpdated
+from .reaction import (
+    Reaction,
+    ReactionType,
+    ReactionTypeEmoji,
+    ReactionTypeCustomEmoji,
+    ReactionTypePaid,
+    ReactionCount
+)
 
 __all__ = [
     "Animation", "Audio", "AvailableEffect", "BoostsStatus", "Contact", "Document", "ExternalReplyInfo", "ForumTopic", "ForumTopicCreated",
@@ -65,5 +74,5 @@ __all__ = [
     "GeneralTopicUnhidden", "Game", "Giveaway", "Location", "Message", "MessageEntity", "Photo", "Thumbnail",
     "StrippedThumbnail", "Story", "StoryDeleted", "StorySkipped", "StoryViews", "TextQuote", "Poll", "PollOption", "Sticker",
     "StickerSet", "Venue", "Video", "VideoNote", "Voice", "WebPage", "Dice", "Reaction", "WebAppData",
-    "MessageReactions", "MessageStory", "MyBoost"
+    "MessageReactions", "MessageStory", "MyBoost", "MessageReactionUpdated", "MessageReactionCountUpdated", "ReactionType", "ReactionTypeEmoji", "ReactionTypeCustomEmoji", "ReactionTypePaid", "ReactionCount"
 ]
