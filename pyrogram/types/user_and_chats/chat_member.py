@@ -31,9 +31,6 @@ class ChatMember(Object):
         status (:obj:`~pyrogram.enums.ChatMemberStatus`):
             The member's status in the chat.
 
-        tag (``str``, *optional*):
-            Tag of the member.
-
         user (:obj:`~pyrogram.types.User`, *optional*):
             Information about the user.
 
@@ -71,11 +68,11 @@ class ChatMember(Object):
         permissions (:obj:`~pyrogram.types.ChatPermissions`, *optional*):
             Restricted only. Restricted actions that a non-administrator user is allowed to take.
 
-        privileges (:obj:`~pyrogram.types.ChatAdministratorRights`, *optional*):
+        privileges (:obj:`~pyrogram.types.ChatPrivileges`, *optional*):
             Administrators only. Privileged actions that an administrator is able to take.
 
         subscription_until_date (:py:obj:`~datetime.datetime`, *optional*):
-            Date when the the subscription will end.
+            Channel members only. Date when the subscription will expire.
     """
 
     def __init__(
@@ -83,7 +80,6 @@ class ChatMember(Object):
         *,
         client: "pyrogram.Client" = None,
         status: "enums.ChatMemberStatus",
-        tag: str = None,
         user: "types.User" = None,
         chat: "types.Chat" = None,
         custom_title: str = None,
@@ -95,13 +91,12 @@ class ChatMember(Object):
         is_member: bool = None,
         can_be_edited: bool = None,
         permissions: "types.ChatPermissions" = None,
-        privileges: "types.ChatAdministratorRights" = None,
+        privileges: "types.ChatPrivileges" = None,
         subscription_until_date: datetime = None
     ):
         super().__init__(client)
 
         self.status = status
-        self.tag = tag
         self.user = user
         self.chat = chat
         self.custom_title = custom_title
@@ -127,7 +122,6 @@ class ChatMember(Object):
         if isinstance(member, raw.types.ChatParticipant):
             return ChatMember(
                 status=enums.ChatMemberStatus.MEMBER,
-                tag=member.rank,
                 user=types.User._parse(client, users[member.user_id]),
                 joined_date=utils.timestamp_to_datetime(member.date),
                 invited_by=types.User._parse(client, users[member.inviter_id]),
@@ -136,7 +130,6 @@ class ChatMember(Object):
         elif isinstance(member, raw.types.ChatParticipantAdmin):
             return ChatMember(
                 status=enums.ChatMemberStatus.ADMINISTRATOR,
-                tag=member.rank,
                 user=types.User._parse(client, users[member.user_id]),
                 joined_date=utils.timestamp_to_datetime(member.date),
                 invited_by=types.User._parse(client, users[member.inviter_id]),
@@ -145,7 +138,6 @@ class ChatMember(Object):
         elif isinstance(member, raw.types.ChatParticipantCreator):
             return ChatMember(
                 status=enums.ChatMemberStatus.OWNER,
-                tag=member.rank,
                 user=types.User._parse(client, users[member.user_id]),
                 client=client
             )
@@ -154,16 +146,14 @@ class ChatMember(Object):
         if isinstance(member, raw.types.ChannelParticipant):
             return ChatMember(
                 status=enums.ChatMemberStatus.MEMBER,
-                tag=member.rank,
                 user=types.User._parse(client, users[member.user_id]),
                 joined_date=utils.timestamp_to_datetime(member.date),
-                subscription_until_date=utils.timestamp_to_datetime(getattr(member, "subscription_until_date", None)),
+                subscription_until_date=utils.timestamp_to_datetime(member.subscription_until_date),
                 client=client
             )
         elif isinstance(member, raw.types.ChannelParticipantAdmin):
             return ChatMember(
                 status=enums.ChatMemberStatus.ADMINISTRATOR,
-                tag=member.rank,
                 user=types.User._parse(client, users[member.user_id]),
                 joined_date=utils.timestamp_to_datetime(member.date),
                 promoted_by=types.User._parse(client, users[member.promoted_by]),
@@ -173,7 +163,7 @@ class ChatMember(Object):
                 ),
                 custom_title=member.rank,
                 can_be_edited=member.can_edit,
-                privileges=types.ChatAdministratorRights._parse(member.admin_rights),
+                privileges=types.ChatPrivileges._parse(member.admin_rights),
                 client=client
             )
         elif isinstance(member, raw.types.ChannelParticipantBanned):
@@ -196,7 +186,6 @@ class ChatMember(Object):
                     if member.banned_rights.view_messages
                     else enums.ChatMemberStatus.RESTRICTED
                 ),
-                tag=member.rank,
                 user=user,
                 chat=chat,
                 until_date=utils.timestamp_to_datetime(member.banned_rights.until_date),
@@ -209,10 +198,9 @@ class ChatMember(Object):
         elif isinstance(member, raw.types.ChannelParticipantCreator):
             return ChatMember(
                 status=enums.ChatMemberStatus.OWNER,
-                tag=member.rank,
                 user=types.User._parse(client, users[member.user_id]),
                 custom_title=member.rank,
-                privileges=types.ChatAdministratorRights._parse(member.admin_rights),
+                privileges=types.ChatPrivileges._parse(member.admin_rights),
                 client=client
             )
         elif isinstance(member, raw.types.ChannelParticipantLeft):
@@ -238,10 +226,9 @@ class ChatMember(Object):
         elif isinstance(member, raw.types.ChannelParticipantSelf):
             return ChatMember(
                 status=enums.ChatMemberStatus.MEMBER,
-                tag=member.rank,
                 user=types.User._parse(client, users[member.user_id]),
                 joined_date=utils.timestamp_to_datetime(member.date),
                 invited_by=types.User._parse(client, users[member.inviter_id]),
-                subscription_until_date=utils.timestamp_to_datetime(getattr(member, "subscription_until_date", None)),
+                subscription_until_date=utils.timestamp_to_datetime(member.subscription_until_date),
                 client=client
             )
