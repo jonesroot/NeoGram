@@ -191,6 +191,9 @@ class Chat(Object):
 
         birthday (:obj:`~pyrogram.types.Birthday`, *optional*):
             User Date of birth.
+
+        banned_until_date (:py:obj:`~datetime.datetime`, *optional*):
+            Date when the current user will be unbanned.
     """
 
     def __init__(
@@ -209,6 +212,7 @@ class Chat(Object):
         is_fake: bool = None,
         is_deactivated: bool = None,
         is_banned: Optional[bool] = None,
+        banned_until_date: datetime = None,
         is_call_active: Optional[bool] = None,
         is_call_not_empty: Optional[bool] = None,
         is_support: bool = None,
@@ -256,6 +260,7 @@ class Chat(Object):
         self.is_fake = is_fake
         self.is_deactivated = is_deactivated
         self.is_banned = is_banned
+        self.banned_until_date = banned_until_date
         self.is_call_active = is_call_active
         self.is_call_not_empty = is_call_not_empty
         self.is_support = is_support
