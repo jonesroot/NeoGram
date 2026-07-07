@@ -338,7 +338,6 @@ class Chat(Object):
                 type=enums.ChatType.GROUP,
                 title=chat.title,
                 is_banned=True,
-                raw=chat,
                 client=client
             )
 
@@ -376,7 +375,6 @@ class Chat(Object):
                 title=channel.title,
                 is_banned=True,
                 banned_until_date=utils.timestamp_to_datetime(getattr(channel, "until_date", None)),
-                raw=channel,
                 client=client,
             )
 
