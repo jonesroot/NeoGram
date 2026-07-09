@@ -30,7 +30,7 @@ from .on_raw_update import OnRawUpdate
 from .on_user_status import OnUserStatus
 from .on_story import OnStory
 from .on_message_reaction_count_updated import OnMessageReactionCountUpdated
-from .on_message_reaction_updated import OnMessageReactionCountUpdated
+from .on_message_reaction_updated import OnMessageReactionUpdated
 
 
 class Decorators(
@@ -48,6 +48,6 @@ class Decorators(
     OnChatJoinRequest,
     OnStory,
     OnMessageReactionCountUpdated,
-    OnMessageReactionCountUpdated
+    OnMessageReactionUpdated
 ):
     pass
