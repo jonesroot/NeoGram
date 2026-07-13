@@ -81,15 +81,17 @@ class MessageReactor(Object):
         sender_chat = None
         if not is_anonymous:
             if isinstance(message_reactor.peer_id, raw.types.PeerUser):
+                user_data = users.get(message_reactor.peer_id.user_id) if users else None
                 from_user = types.User._parse(
                     client,
-                    users.get(message_reactor.peer_id.user_id)
-                )
+                    user_data
+                ) if user_data else None
             elif isinstance(message_reactor.peer_id, raw.types.PeerChannel):
+                chat_data = chats.get(message_reactor.peer_id.channel_id) if chats else None
                 sender_chat = types.Chat._parse_channel_chat(
                     client,
-                    chats.get(message_reactor.peer_id.channel_id)
-                )
+                    chat_data
+                ) if chat_data else None
 
         return MessageReactor(
             client=client,
